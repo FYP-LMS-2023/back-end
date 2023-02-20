@@ -1,3 +1,3 @@
-exports.test = (err, req, res, next) => {
+exports.test = (req, res, next) => {
   res.send("Test");
 };
