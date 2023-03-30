@@ -9,11 +9,18 @@ const app = express();
 
 connectDB();
 app.use(cors());
-app.use(morgan());
 
+if (app.get("env") === "development") {
+  app.use(morgan());
+  console.log("Morgan logging enabled...");
+}
 app.use("/auth", authRouter);
 app.use(error);
 
-app.listen(8080, () => {
-  console.log("Server is on!");
+
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+  console.log(`Server is running on ${PORT}...`);
 });
+
+
