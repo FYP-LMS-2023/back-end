@@ -17,6 +17,9 @@ if (app.get("env") === "development") {
 app.use("/auth", authRouter);
 app.use(error);
 
+app.use("/createUser", authRouter);
+app.use(error);
+
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

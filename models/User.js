@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const Joi = require("joi");
-Joi.objectId = require("joi-objectid")(Joi);
+//const Joi = require("joi");
+//Joi.objectId = require("joi-objectid")(Joi);
 
 const userSchema = new mongoose.Schema({
   fullName: {
