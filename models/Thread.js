@@ -4,8 +4,8 @@ const threadSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    require: true,
-    validtor: function (v) {
+    required: true,
+    validator: function (v) {
       return mongoose.Types.ObjectId.isValid(v);
     },
     message: (props) => `${props.value} is not a valid user id!`,
