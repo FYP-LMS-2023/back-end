@@ -1,4 +1,4 @@
-const User = require("../models/User.js");
+const {User} = require("../models/User.js");
 
 const Program = require("../models/Program");
 
@@ -7,9 +7,8 @@ exports.test = (req, res, next) => {
 };
 
 exports.createUser = async (req, res, next) => {
-  
   const user = new User({
-    email: "moosah01@gmail.com",
+    email: "1",
     fullName: "Moosa Hashim",
     ERP: "2018A7PS0001H",
     userType: "Student",
@@ -20,8 +19,7 @@ exports.createUser = async (req, res, next) => {
     phoneNumber: "0000000000",
     CGPA: 0.0,
     Program: "6425a66e47dcb940dfee5b59",
-
-  }); 
+  });
   const result = await user.save();
   if (result) {
     res.status(200).send({
@@ -30,7 +28,7 @@ exports.createUser = async (req, res, next) => {
   } else {
     res.status(400).send({
       message: "Error creating user",
-    })
+    });
   }
 };
 
@@ -53,7 +51,11 @@ exports.createProgram = async (req, res, next) => {
     });
   } else {
     res.status(400).send({
-      mssg: "error!"
-    })
+      mssg: "error!",
+    });
   }
+};
+
+exports.login = async (req, res, next) => {
+
 };
