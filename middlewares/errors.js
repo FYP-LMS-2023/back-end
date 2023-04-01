@@ -7,5 +7,5 @@ module.exports = function (err, req, res, next) {
   //     message: err._message
   //   })
   // }
-  return res.status(500).send("Something failed..");
+  return res.status(500).send("Something failed.. Please try again later");
 };
