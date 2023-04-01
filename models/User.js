@@ -90,7 +90,7 @@ const userSchema = new mongoose.Schema({
 const User = new mongoose.model("User", userSchema);
 
 function validateUser(user) {
-  const schema = {
+  var schema = Joi.object({
     fullName: Joi.string().min(5).max(50).required(),
     ERP: Joi.string().min(5).max(5).required(),
     email: Joi.string().min(5).max(255).required().email(),
@@ -102,9 +102,9 @@ function validateUser(user) {
     CGPA: Joi.number().min(0.0).max(4.0).required(),
     Program: Joi.string().required(),
     notifications: Joi.array().required(),
-  };
+  });
 
-  return Joi.validate(user, schema);
+  return schema.validate(user);
 }
 module.exports = {
   User,

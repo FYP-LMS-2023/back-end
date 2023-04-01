@@ -1,4 +1,4 @@
-const {User} = require("../models/User.js");
+const {User, validateUser} = require("../models/User.js");
 
 const Program = require("../models/Program");
 
@@ -7,20 +7,27 @@ exports.test = (req, res, next) => {
 };
 
 exports.createUser = async (req, res, next) => {
-  const user = new User({
-    email: "1",
-    fullName: "Moosa Hashim",
-    ERP: "2018A7PS0001H",
-    userType: "Student",
+
+  var schema = {
+    email: req.body?.email,
+    fullName: req.body?.fullName,
+    ERP: req.body?.ERP,
+    userType: req.body?.userType,
     notifications: [],
     courses: [],
-    password: "123456",
+    password: req.body?.password,
     profilePic: "https://placeholder.png",
-    phoneNumber: "0000000000",
-    CGPA: 0.0,
+    phoneNumber: req.body?.phoneNumber,
+    CGPA: req.body?.CGPA,
     Program: "6425a66e47dcb940dfee5b59",
-  });
+  }
+
+  const {error} = validateUser(schema)
+  if (error) return res.status(400).send({message: error.details[0].message})
+
+  let user = new User(schema);
   const result = await user.save();
+
   if (result) {
     res.status(200).send({
       result,
