@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 //Joi.objectId = require("joi-objectid")(Joi);
 
 const userSchema = new mongoose.Schema({
@@ -51,7 +53,7 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
-  phoneNumer: {
+  phoneNumber: {
     type: String,
     default: "0000000000",
     required: true,
@@ -87,6 +89,19 @@ const userSchema = new mongoose.Schema({
   ],
 });
 
+userSchema.methods.generateAuthToken = function () {
+  const token = jwt.sign(
+    {
+      _id: this._id,
+      email: this.email,
+      ERP: this.ERP,
+      userType: this.userType,
+    },
+    process.env.jwtPrivateKey
+  );
+  return token;
+};
+
 const User = new mongoose.model("User", userSchema);
 
 function validateUser(user) {
@@ -97,7 +112,7 @@ function validateUser(user) {
     userType: Joi.string().valid("Student", "Faculty", "Admin").required(),
     password: Joi.string().min(6).required(),
     profilePic: Joi.string().required(),
-    phoneNumer: Joi.string().required(),
+    phoneNumber: Joi.string().required(),
     courses: Joi.array().required(),
     CGPA: Joi.number().min(0.0).max(4.0).required(),
     Program: Joi.string().required(),
@@ -106,7 +121,9 @@ function validateUser(user) {
 
   return schema.validate(user);
 }
+
+
 module.exports = {
   User,
-  validateUser
-}
+  validateUser,
+};
