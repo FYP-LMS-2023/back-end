@@ -121,7 +121,22 @@ function validateUser(user) {
     ERP: Joi.string()
       .min(5)
       .max(5)
-      .when("userType", { not: "Admin", then: Joi.required() }),
+      .when("userTpe", {
+        is: "Student",
+        then: Joi.string()
+          .required()
+          .custom(async (value, helpers) => {
+            const erpCheck = await User.find({ERP: value, userType: "Student"});
+            if (erpCheck.length > 0) {
+              return helpers.error("ERP already exists!");
+            }
+            else {
+              return value;
+            }
+          }),
+      }),
+      //otherwise: Joi.string().default("00000"),
+      //.when("userType", { not: "Admin", then: Joi.required() }),
     email: Joi.string().min(5).max(255).required().email(),
     userType: Joi.string().valid("Student", "Faculty", "Admin").required(),
     password: Joi.string().min(6).required(),
@@ -141,9 +156,16 @@ function validateUser(user) {
     }),
     notifications: Joi.array().required(),
   });
-
   return schema.validate(user);
 }
+
+// userSchema.pre("save", async function (next) {
+//   if(this.isNew && this.userType === "Student") {
+//     const count = await this.constructor.countDocuments({userType: "Student"});
+//     this.ERP = (count+1).toString().padStart(5, "0");
+//   }
+//   next();
+// });
 
 module.exports = {
   User,
