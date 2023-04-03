@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema({
   ERP: {
     type: String,
     unique: true,
-    required: true,
+    required: () => {
+      this.userType == "Admin" ? false : true;
+    },
   },
   email: {
     type: String,
@@ -44,7 +46,9 @@ const userSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
-      required: true,
+      required: () => {
+        this.userType == "Admin" ? false : true;
+      },
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
@@ -61,12 +65,16 @@ const userSchema = new mongoose.Schema({
   CGPA: {
     type: Number,
     default: 0.0,
-    required: true,
+    required: () => {
+      this.userType == "Admin" ? false : true;
+    },
   },
   Program: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Program",
-    required: true,
+    required: () => {
+      this.userType == "Admin" ? false : true;
+    },
     validate: {
       validator: function (v) {
         return mongoose.Types.ObjectId.isValid(v);
@@ -107,21 +115,20 @@ const User = new mongoose.model("User", userSchema);
 function validateUser(user) {
   var schema = Joi.object({
     fullName: Joi.string().min(5).max(50).required(),
-    ERP: Joi.string().min(5).max(5).required(),
+    // ERP: Joi.string().min(5).max(5).required(),
     email: Joi.string().min(5).max(255).required().email(),
     userType: Joi.string().valid("Student", "Faculty", "Admin").required(),
     password: Joi.string().min(6).required(),
     profilePic: Joi.string().required(),
     phoneNumber: Joi.string().required(),
-    courses: Joi.array().required(),
-    CGPA: Joi.number().min(0.0).max(4.0).required(),
-    Program: Joi.string().required(),
+    // courses: Joi.array().required(),
+    // CGPA: Joi.number().min(0.0).max(4.0).required(),
+    // Program: Joi.string().required(),
     notifications: Joi.array().required(),
   });
 
   return schema.validate(user);
 }
-
 
 module.exports = {
   User,

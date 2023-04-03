@@ -4,6 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const error = require("./middlewares/errors");
 const authRouter = require("./routes/auth");
+const adminRouter = require("./routes/admin");
 const connectDB = require("./config/db");
 
 const app = express();
@@ -27,6 +28,7 @@ if (app.get("env") === "development") {
 }
 
 app.use(express.json());
+app.use("/admin", adminRouter);
 app.use("/auth", authRouter);
 app.use(error);
 

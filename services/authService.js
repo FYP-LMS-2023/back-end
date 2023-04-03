@@ -9,6 +9,8 @@ exports.test = (req, res, next) => {
 };
 
 exports.createUser = async (req, res, next) => {
+  var isAdmin = false;
+
   var schema = {
     email: req.body?.email,
     fullName: req.body?.fullName,
@@ -22,6 +24,18 @@ exports.createUser = async (req, res, next) => {
     CGPA: req.body?.CGPA,
     Program: "6425a66e47dcb940dfee5b59",
   };
+  if (req.body?.userType == "Admin") {
+    schema = {
+      email: req.body?.email,
+      fullName: req.body?.fullName,
+      userType: req.body?.userType,
+      notifications: [],
+      password: req.body?.password,
+      profilePic: "https://placeholder.png",
+      phoneNumber: req.body?.phoneNumber,
+    };
+    isAdmin = true;
+  }
 
   const { error } = validateUser(schema);
   if (error)
@@ -31,9 +45,11 @@ exports.createUser = async (req, res, next) => {
   if (emailCheck.length)
     return res.status(400).send({ message: "User with Email already exists!" });
 
-  const ERPcheck = await User.find({ ERP: req.body.ERP });
-  if (ERPcheck.length)
-    return res.status(400).send({ message: "User with ERP already exists!" });
+  if (!isAdmin) {
+    const ERPcheck = await User.find({ ERP: req.body.ERP });
+    if (ERPcheck.length)
+      return res.status(400).send({ message: "User with ERP already exists!" });
+  }
 
   let user = new User(schema);
 
@@ -44,23 +60,39 @@ exports.createUser = async (req, res, next) => {
 
   if (result) {
     const token = user.generateAuthToken();
-    res
-      .status(200)
-      .header("x-auth-token", token)
-      .send(
-        _.pick(result, [
-          "email",
-          "fullName",
-          "ERP",
-          "userType",
-          "courses",
-          "profilePic",
-          "phoneNumber",
-          "CGPA",
-          "Program",
-          "_id",
-        ])
-      );
+    if (!isAdmin) {
+      return res
+        .status(200)
+        .header("x-auth-token", token)
+        .send(
+          _.pick(result, [
+            "email",
+            "fullName",
+            "ERP",
+            "userType",
+            "courses",
+            "profilePic",
+            "phoneNumber",
+            "CGPA",
+            "Program",
+            "_id",
+          ])
+        );
+    } else {
+      return res
+        .status(200)
+        .header("x-auth-token", token)
+        .send(
+          _.pick(result, [
+            "email",
+            "fullName",
+            "userType",
+            "profilePic",
+            "phoneNumber",
+            "_id",
+          ])
+        );
+    }
   } else {
     res.status(500).send({
       message: "Error creating user",
@@ -112,4 +144,9 @@ exports.login = async (req, res, next) => {
   const token = user.generateAuthToken();
 
   res.send({ message: "User logged in successfully!", token: token });
+};
+
+exports.getProfile = async (req, res, next) => {
+  const user = await User.findById(req.user._id).select("-password");
+  res.status(200).send(user);
 };
