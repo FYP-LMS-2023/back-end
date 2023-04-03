@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 //I want to write a schema for courses
 
@@ -35,4 +38,19 @@ const courseSchema = new mongoose.Schema({
 
 const Course = mongoose.model("Course", courseSchema);
 
-module.exports = Course;
+function validatecourse (course) {
+  var schema = Joi.object({
+    courseCode: Joi.string().required(),
+    courseName: Joi.string().required(),
+    creditHours: Joi.number().required(),
+    courseDescription: Joi.string().required(),
+    classes: Joi.array().items(Joi.objectId()),
+  });
+  return schema.validate(course);
+
+}
+
+module.exports = {
+  Course,
+  validatecourse,
+}

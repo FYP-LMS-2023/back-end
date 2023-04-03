@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
 
 const announcementSchema = new mongoos.Schema({
   title: {
@@ -29,4 +31,20 @@ const announcementSchema = new mongoos.Schema({
 
 const Announcement = mongoose.model("Announcement", announcementSchema);
 
-module.exports(Announcement);
+
+//validate announcement using joi
+function validateAnnouncement(announcement) {
+  var schema = Joi.object({
+    title: Joi.string().min(5).max(50).required(),
+    description: Joi.string().min(5).max(255).required(),
+    userId: Joi.objectId().required(),
+    datePosted: Joi.date().required(),
+  });
+  return schema.validate(announcement)
+}
+
+
+module.exports = {
+  Announcement,
+  validateAnnouncement,
+}

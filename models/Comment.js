@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 const commentSchema = new mongoose.Schema({
   comment: {
@@ -37,4 +40,17 @@ const commentSchema = new mongoose.Schema({
 
 const Comment = mongoose.model("Comment", commentSchema);
 
-module.exports = Comment;
+function validateComment(comment) {
+  const schema = Joi.object({
+    comment: Joi.string().required(),
+    author: Joi.ObjectId().required(),
+    datePosted: Joi.date(),
+    replies: Joi.array().items(Joi.ObjectId()),
+  });
+  return schema.validate(comment);
+}
+
+module.exports = {
+  Comment,
+  validateComment
+}

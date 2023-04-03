@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
 
 const attendanceSchema = new mongoose.Schema({
   classID: {
@@ -44,4 +46,21 @@ const attendanceSchema = new mongoose.Schema({
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);
 
-module.exports = Attendance;
+function validateAttendance(attendance){
+  var schema = Joi.object({
+    classID: Joi.string().required(),
+    sessions: Joi.array().items(Joi.object({
+      date: Joi.date().required(),
+      attendance: Joi.array().items(Joi.object({
+        studentID: Joi.objectId().required(),
+        present: Joi.boolean().required(),
+      }))
+    }))
+  })
+  return schema.validate(attendance);
+}
+
+module.exports = {
+  Attendance,
+  validateAttendance,
+}

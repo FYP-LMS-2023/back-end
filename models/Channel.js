@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 const channelSchema = new mongoose.Schema({
   threads: [
@@ -18,4 +21,15 @@ const channelSchema = new mongoose.Schema({
 
 const Channel = mongoose.model("Channel", channelSchema);
 
-module.exports = Channel;
+function validateChannel(channel) {
+    var schema = Joi.object({
+    threads: Joi.array().items(Joi.objectId()),
+  });
+
+  return schema.validate(channel);
+}
+
+module.exports = {
+  Channel,
+  validateChannel,
+}

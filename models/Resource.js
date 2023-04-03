@@ -1,11 +1,9 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 const resourceSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    //required: true,
-    unique: true,
-  },
   uploadedBy: {
     type: mongoose.Schema.Type.Object.Id,
     ref: "User",
@@ -34,8 +32,28 @@ const resourceSchema = new mongoose.Schema({
     type: Buffer,
     required: true,
   },
+  fileName: {
+    type: String,
+    required: true,
+  }
 });
 
 const Resource = mongoose.model("Resource", resourceSchema);
 
-module.exports = Resource;
+function validateResource(resource){
+  var schema = Joi.object({
+    uploadedBy: Joi.objectId().required(),
+    dateUploaded: Joi.date().required(),
+    fileSize: Joi.number().min(0).required(),
+    fileType: Joi.string().min(5).max(255).required(),
+    file: Joi.binary().required(),
+    fileName: Joi.string().min(5).max(255).required(),
+  });
+
+  return schema.validate(resource);
+}
+
+module.exports = {
+  Resource,
+  validateResource,  
+}

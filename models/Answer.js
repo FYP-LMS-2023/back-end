@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
 
 const answerSchema = new mongoose.Schema({
   answerDescription: {
@@ -9,4 +11,15 @@ const answerSchema = new mongoose.Schema({
 
 const Answer = mongoose.model("Answer", answerSchema);
 
-module.exports = Answer;
+//validate answer using joi
+function validateAnswer(answer){
+  var schema = Joi.object({
+    answerDescription: Joi.string().min(5).max(255).required(),
+  });
+  return schema.validate(answer);
+}
+
+module.exports = {
+  Answer,
+  validateAnswer,
+}

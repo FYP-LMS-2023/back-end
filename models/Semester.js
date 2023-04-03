@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 const semesterSchema = new mongoose.Schema({
   semesterName: {
@@ -24,4 +27,17 @@ const semesterSchema = new mongoose.Schema({
 
 const Semester = mongoose.model("Semester", semesterSchema);
 
-module.exports = Semester;
+function validateSemester(semester) {
+  var schema = Joi.object({
+    semesterName: Joi.string().required(),
+    semesterStartDate: Joi.date().required(),
+    semesterEndDate: Joi.date().required(),
+  });
+
+  return schema.validate(semester);
+}
+
+module.exports = {
+  Semester,
+  validateSemester,
+}

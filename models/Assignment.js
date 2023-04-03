@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
 
 const assignmentSchema = new mongoose.Schema({
   uploadDate: {
@@ -97,4 +99,31 @@ assignmentSchema.pre("save", function (next) {
 
 const Assignment = mongoose.model("Assignment", assignmentSchema);
 
-module.exports = Assignment;
+function validateAssignment(assignment) {
+  var schema = Joi.object({
+    uploadDate: Joi.date().required(),
+    dueDate: Joi.date().required(),
+    title: Joi.string().min(5).max(50).required(),
+    classId: Joi.objectId().required(),
+    resubmissionsAllowed: Joi.number().min(0).required(),
+    status: Joi.string().valid("open", "closed").required(),
+    resubmissionDeadline: Joi.date(),
+    description: Joi.string().min(5).max(255).required(),
+    attachments: Joi.array().items(
+      Joi.object({
+        filename: Joi.string().min(5).max(255).required(),
+        file: Joi.binary().required(),
+        fileSize: Joi.number().min(0).required(),
+        fileType: Joi.string().min(5).max(255).required(),
+      })
+    ),
+    submissions: Joi.array().items(Joi.objectId()),
+    marks: Joi.number().min(0).required(),
+    });
+  return schema.validate(assignment);
+}
+
+module.exports = {
+  Assignment,
+  validateAssignment,
+}

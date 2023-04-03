@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-
-//I want to write a schema for classes
+const Joi = require("joi");
+require("dotenv").config();
 
 const classSchema = new mongoose.Schema({
   semesterID: {
@@ -134,4 +134,25 @@ const classSchema = new mongoose.Schema({
 
 const Class = new mongoose.model("Class", classSchema);
 
-module.exports = Class;
+function validateclass(classes) {
+  var schema = Joi.object({
+    semesterID: Joi.objectId.required(),
+    teacherID: Joi.objectId().required(),
+    syllabus: Joi.string(),
+    studenList: Joi.array().items(Joi.objectId()),
+    TA: Joi.array().items(Joi.objectId()),
+    Channel: Joi.objectId().required(),
+    Announcement: Joi.array().items(Joi.objectId()),
+    Quizes: Joi.array().items(Joi.objectId()),
+    Resources: Joi.array().items(Joi.objectId()),
+    Assignments: Joi.array().items(Joi.objectId()),
+    Attendance: Joi.array().items(Joi.objectId()),
+  });
+
+  return schema.validate(classes);
+}
+
+module.exports = {
+  Class,
+  validateclass,
+}

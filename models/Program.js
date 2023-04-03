@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 const programSchema = new mongoose.Schema({
   name: {
@@ -58,4 +61,19 @@ const programSchema = new mongoose.Schema({
 
 const Program = mongoose.model("Program", programSchema);
 
-module.exports = Program;
+function validateProgram(program) {
+  var schema = Joi.object({
+    name: Joi.string().required(),
+    code: Joi.string().required(),
+    description: Joi.string().required(),
+    electives: Joi.array().items(Joi.objectId()),
+    cores: Joi.array().items(Joi.objectId()),
+    faculty: Joi.array().items(Joi.objectId()),
+  });
+  return schema.validate(program);
+}
+
+module.exports = {
+  Program,
+  validateProgram
+}

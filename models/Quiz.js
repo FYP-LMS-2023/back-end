@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
 
 const quizSchema = new mongoose.Schema({
   title: {
@@ -114,4 +116,30 @@ quizSchema.pre("save", function (next) {
 
 const Quiz = mongoose.model("Quiz", quizSchema);
 
-module.exports = Quiz;
+function validateQuiz(quiz) {
+  var schema = Joi.object({
+    title: Joi.string().min(5).max(50).required(),
+    description: Joi.string().min(5).max(255).required(),
+    uploadDate: Joi.date(),
+    dueDate: Joi.date().required(),
+    startDate: Joi.date().required(),
+    classId: Joi.objectId().required(),
+    status: Joi.string().valid("open", "closed", "pending").required(),
+    resubmissionsAllowed: Joi.number().min(0).required(),
+    resubmissionDeadline: Joi.date(),
+    attachments: Joi.array().items(
+      Joi.object({
+        filename: Joi.string().min(5).max(255).required(),
+        file: Joi.binary().required(),
+        fileSize: Joi.number().min(0).required(),
+        fileType: Joi.string().min(5).max(255).required(),
+      })  
+    ),
+  });
+  return schema.validate(quiz);
+}
+
+module.exports = {
+  Quiz,
+  validateQuiz
+}

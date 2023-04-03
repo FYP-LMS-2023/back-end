@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
+
 
 const qestionSchema = new mongoose.Schema({
   questionDescription: {
@@ -33,4 +36,15 @@ const qestionSchema = new mongoose.Schema({
 
 const Question = mongoose.model("Question", qestionSchema);
 
-module.exports = Question;
+function validateQuestion(question) {
+  var schema = Joi.object({
+    questionDescription: Joi.string().min(5).max(100).required(),
+    answers: Joi.array().items(Joi.ObjectId()).required(),
+    correctAnswer: Joi.ObjectId().required(),
+  });
+}
+
+module.exports = {
+  Question,
+  validateQuestion
+}

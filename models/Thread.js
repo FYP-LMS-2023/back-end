@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Joi = require("joi");
+require("dotenv").config();
 
 const threadSchema = new mongoose.Schema({
   author: {
@@ -53,6 +55,22 @@ const threadSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Thread", threadSchema);
+const Thread = new mongoose.model("Thread", threadSchema);
 
-const mongoose = require("mongoose");
+function validateThread(thread) {
+  var schema = Joi.object({
+    author: Joi.objectId().required(),
+    title: Joi.string().min(5).max(255).required(),
+    description: Joi.string().min(5).max(255).required(),
+    date: Joi.date().required(),
+    comments: Joi.array().required(),
+    tags: Joi.array().required(),
+    upvotes: Joi.number().min(0).required(),
+  });
+  return schema.validate(thread);
+}
+
+module.exports = {
+  Thread,
+  validateThread
+}
