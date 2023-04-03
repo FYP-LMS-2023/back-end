@@ -11,9 +11,12 @@ const userSchema = new mongoose.Schema({
   },
   ERP: {
     type: String,
-    unique: true,
-    required: () => {
-      this.userType == "Admin" ? false : true;
+    unique: function () {
+      // return this.userType != "Admin";
+      return false;
+    },
+    required: function () {
+      return this.userType != "Admin";
     },
   },
   email: {
@@ -46,8 +49,8 @@ const userSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Course",
-      required: () => {
-        this.userType == "Admin" ? false : true;
+      required: function () {
+        return this.userType != "Admin";
       },
       validate: {
         validator: function (v) {
@@ -65,15 +68,15 @@ const userSchema = new mongoose.Schema({
   CGPA: {
     type: Number,
     default: 0.0,
-    required: () => {
-      this.userType == "Admin" ? false : true;
+    required: function () {
+      return this.userType != "Admin";
     },
   },
   Program: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Program",
-    required: () => {
-      this.userType == "Admin" ? false : true;
+    required: function () {
+      return this.userType != "Admin";
     },
     validate: {
       validator: function (v) {
@@ -115,15 +118,27 @@ const User = new mongoose.model("User", userSchema);
 function validateUser(user) {
   var schema = Joi.object({
     fullName: Joi.string().min(5).max(50).required(),
-    // ERP: Joi.string().min(5).max(5).required(),
+    ERP: Joi.string()
+      .min(5)
+      .max(5)
+      .when("userType", { not: "Admin", then: Joi.required() }),
     email: Joi.string().min(5).max(255).required().email(),
     userType: Joi.string().valid("Student", "Faculty", "Admin").required(),
     password: Joi.string().min(6).required(),
     profilePic: Joi.string().required(),
     phoneNumber: Joi.string().required(),
-    // courses: Joi.array().required(),
-    // CGPA: Joi.number().min(0.0).max(4.0).required(),
-    // Program: Joi.string().required(),
+    courses: Joi.array().when("userType", {
+      not: "Admin",
+      then: Joi.required(),
+    }),
+    CGPA: Joi.number()
+      .min(0.0)
+      .max(4.0)
+      .when("userType", { not: "Admin", then: Joi.required() }),
+    Program: Joi.string().when("userType", {
+      not: "Admin",
+      then: Joi.required(),
+    }),
     notifications: Joi.array().required(),
   });
 
