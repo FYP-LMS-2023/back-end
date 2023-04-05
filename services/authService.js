@@ -37,11 +37,14 @@ exports.createUser = async (req, res, next) => {
     isAdmin = true;
   }
 
-  const { error } = validateUser(schema);
+  const { error } = validateUser(schema,res);
+  
   if (error)
     return res.status(400).send({ message: `${error.details[0].message}` });
 
-  const emailCheck = await User.find({ email: req.body.email });
+  schema.email = req.body.email.toLowerCase();
+
+  const emailCheck = await User.find({ email: schema.email });
   if (emailCheck.length)
     return res.status(400).send({ message: "User with Email already exists!" });
 
@@ -133,7 +136,8 @@ exports.login = async (req, res, next) => {
   if (error)
     return res.status(400).send({ message: `${error.details[0].message}` });
 
-  let user = await User.findOne({ email: req.body.email });
+    var lowerCaseEmail = req.body.email.toLowerCase();
+  let user = await User.findOne({ email: lowerCaseEmail });
   if (!user)
     return res.status(400).send({ message: "Invalid email or password!" });
 

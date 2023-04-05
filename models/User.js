@@ -11,10 +11,6 @@ const userSchema = new mongoose.Schema({
   },
   ERP: {
     type: String,
-    unique: function () {
-      // return this.userType != "Admin";
-      return false;
-    },
     required: function () {
       return this.userType != "Admin";
     },
@@ -116,25 +112,17 @@ userSchema.methods.generateAuthToken = function () {
 const User = new mongoose.model("User", userSchema);
 
 function validateUser(user) {
+ 
   var schema = Joi.object({
     fullName: Joi.string().min(5).max(50).required(),
     ERP: Joi.string()
       .min(5)
       .max(5)
       .when("userTpe", {
-        is: "Student",
-        then: Joi.string()
+        not: "Admin",
+        then: Joi
           .required()
-          .custom(async (value, helpers) => {
-            const erpCheck = await User.find({ERP: value, userType: "Student"});
-            if (erpCheck.length > 0) {
-              return helpers.error("ERP already exists!");
-            }
-            else {
-              return value;
-            }
-          }),
-      }),
+        }),
       //otherwise: Joi.string().default("00000"),
       //.when("userType", { not: "Admin", then: Joi.required() }),
     email: Joi.string().min(5).max(255).required().email(),
@@ -155,7 +143,7 @@ function validateUser(user) {
       then: Joi.required(),
     }),
     notifications: Joi.array().required(),
-  });
+  })
   return schema.validate(user);
 }
 
