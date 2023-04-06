@@ -10,5 +10,6 @@ router.post("/createProgram", asyncMiddleware(authService.createProgram));
 router.post("/login", asyncMiddleware(authService.login));
 router.get("/getProfile", auth, asyncMiddleware(authService.getProfile));
 router.post("/createSemester", auth, asyncMiddleware(authService.createSemester));
+router.post("/createAnnouncement", auth, asyncMiddleware(authService.createAnnouncement));
 
 module.exports = router;

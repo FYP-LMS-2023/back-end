@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi)
 require("dotenv").config();
 
-const announcementSchema = new mongoos.Schema({
+const announcementSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -11,9 +12,9 @@ const announcementSchema = new mongoos.Schema({
     type: String,
     required: true,
   },
-  userId: {
+  postedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
     validate: {
       validator: function (v) {
@@ -37,7 +38,7 @@ function validateAnnouncement(announcement) {
   var schema = Joi.object({
     title: Joi.string().min(5).max(50).required(),
     description: Joi.string().min(5).max(255).required(),
-    userId: Joi.objectId().required(),
+    postedBy: Joi.objectId().required(),
     datePosted: Joi.date().required(),
   });
   return schema.validate(announcement)
