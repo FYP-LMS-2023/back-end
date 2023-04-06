@@ -118,7 +118,7 @@ function validateUser(user) {
     ERP: Joi.string()
       .min(5)
       .max(5)
-      .when("userTpe", {
+      .when("userType", {
         not: "Admin",
         then: Joi
           .required()

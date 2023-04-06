@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const { User, validateUser } = require("../models/User.js");
 const Program = require("../models/Program");
+const { Semester, validateSemester} = require("../models/Semester.js");
 
 exports.test = (req, res, next) => {
   res.send("Test");
@@ -154,3 +155,32 @@ exports.getProfile = async (req, res, next) => {
   const user = await User.findById(req.user._id).select("-password");
   res.status(200).send(user);
 };
+
+exports.createSemester = async (req, res, next) => {
+
+  var schema = {
+    semesterName: req.body.semesterName,
+    semesterStartDate: req.body.semesterStartDate,
+    semesterEndDate: req.body.semesterEndDate,
+  };
+
+  const { error } = validateSemester(schema, res);
+  if (error){
+    console.log("validation error");
+    return res.status(400).send({ message: `${error.details[0].message}` });
+  }
+
+  let semester = new Semester(schema);
+  const result = await semester.save();
+
+  if (result) {
+    res.status(200).send({
+      message: "Semester created successfully!",
+      result,
+    });
+  } else {
+    res.status(500).send({
+      message: "Error creating semester",
+    });
+  }
+}
