@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi)
 require("dotenv").config();
 
 const threadSchema = new mongoose.Schema({
-  author: {
+  postedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
@@ -20,7 +21,7 @@ const threadSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  date: {
+  datePosted: {
     type: Date,
     default: Date.now,
   },
@@ -59,13 +60,11 @@ const Thread = new mongoose.model("Thread", threadSchema);
 
 function validateThread(thread) {
   var schema = Joi.object({
-    author: Joi.objectId().required(),
+    postedBy: Joi.objectId().required(),
     title: Joi.string().min(5).max(255).required(),
     description: Joi.string().min(5).max(255).required(),
-    date: Joi.date().required(),
-    comments: Joi.array().required(),
-    tags: Joi.array().required(),
-    upvotes: Joi.number().min(0).required(),
+    comments: Joi.array().items(Joi.objectId()).required(),
+    tags: Joi.array().items(Joi.string().valid("General", "Homework", "Project", "Exam", "Question", "Other")).default(["General"]).required(),
   });
   return schema.validate(thread);
 }

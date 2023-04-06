@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi)
 require("dotenv").config();
 
 
@@ -8,8 +9,8 @@ const commentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  author: {
-    type: mongoose.Schema.Types.OBjectId,
+  postedBy: {
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
     validate: {
@@ -43,9 +44,8 @@ const Comment = mongoose.model("Comment", commentSchema);
 function validateComment(comment) {
   const schema = Joi.object({
     comment: Joi.string().required(),
-    author: Joi.ObjectId().required(),
-    datePosted: Joi.date(),
-    replies: Joi.array().items(Joi.ObjectId()),
+    postedBy: Joi.objectId().required(),
+    replies: Joi.array().items(Joi.objectId()),
   });
   return schema.validate(comment);
 }

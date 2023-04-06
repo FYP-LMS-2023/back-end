@@ -5,6 +5,9 @@ const { User, validateUser } = require("../models/User.js");
 const Program = require("../models/Program");
 const { Semester, validateSemester} = require("../models/Semester.js");
 const { Announcement, validateAnnouncement } = require("../models/Announcement.js");
+const { Channel, validateChannel } = require("../models/Channel.js");
+const { Thread, validateThread } = require("../models/Thread.js");
+const { Comment, validateComment } = require("../models/Comment.js");
 
 exports.test = (req, res, next) => {
   res.send("Test");
@@ -209,7 +212,7 @@ exports.createAnnouncement = async(req, res, next) => {
   let announcement = new Announcement(schema);
   const result = await announcement.save();
 
-  var populatedResult = await result.populate('postedBy', 'fullName -_id');
+  var populatedResult = await result.populate('postedBy', 'fullName ERP -_id');
 
   if (populatedResult) {
     res.status(200).send({
@@ -221,4 +224,175 @@ exports.createAnnouncement = async(req, res, next) => {
       message: "Error creating announcement",
     });
   }
+}
+
+exports.createChannel = async(req, res, next) => {
+  var schema = {
+    threads: req.body.threads
+  }
+  const { error } = validateChannel(schema, res);
+
+  if (error) {
+    console.log("validation error");
+    return res.status(400).send({ message: `${error.details[0].message}` });
+  }
+
+  let channel = new Channel(schema);
+  const result = await channel.save();
+
+  if (result) {
+    res.status(200).send({
+      message: "Channel created successfully!",
+      result,
+    })
+  }
+  else {
+    res.status(500).send({
+      message: "Error creating channel",
+    })
+  }
+}
+
+exports.createThread = async (req, res, next) => {
+
+  if(!req.body.channelID) {
+    return res.status(400).send({ message: "Channel ID is required!" });
+  }
+
+  const channelCheck = await Channel.findById(req.body.channelID);
+  //const user = await User.findById(req.body.postedBy);
+  const user = await User.findOne({fullName: req.body.postedBy});
+
+  if(!user) {
+    return res.status(400).send({ message: "User does not exist!" });
+  }
+
+  if (!channelCheck) {
+    return res.status(400).send({ message: "Channel does not exist!" });
+  }
+
+  var schema = {
+    postedBy: user.id,
+    title: req.body.title,
+    description: req.body.description,
+    comments: req.body.comments,
+    tags: req.body.tags,
+  };
+
+  const { error } = validateThread(schema, res);
+  if (error) {
+    console.log("validation error");
+    return res.status(400).send({ message: `${error.details[0].message}` });
+  }
+
+  let thread = new Thread(schema);
+  const result = await thread.save();
+
+  if (result) {
+
+    channelCheck.threads.push(result.id);
+    await channelCheck.save();
+    
+    res.status(200).send({
+      message: "Thread created successfully!",
+      result,
+    });
+  } else {
+    res.status(500).send({
+      message: "Error creating thread",
+    });
+  }
+}
+
+exports.getChannel = async (req, res, next) => {
+  const channel = await Channel.findById(req.params.id);
+  if (!channel) {
+    return res.status(400).send({ message: "Channel does not exist!" });
+  }
+  // var popResult = await channel.populate({
+  //   path: 'threads', 
+  //   populate: {path: 'postedBy', select: 'fullName ERP -_id'}});
+
+  // var populatedResult = await channel.populate('threads.postedBy', 'fullName -_id');
+  // res.status(200).send(populatedResult);
+
+  var populatedResult = await channel.populate({
+    path: 'threads',
+    populate: [
+      { path: 'postedBy', select: 'fullName ERP -_id' },
+      { path: 'comments', populate: { path: 'postedBy', select: 'fullName ERP -_id' } }
+    ]
+  })
+
+  res.status(200).send(populatedResult);  
+};
+
+exports.createComment = async (req, res, next) => {
+  if(!req.body.threadID && !req.body.commentID) {
+    return res.status(400).send({ message: "Thread ID or Comment ID is required!" });
+  }
+  if(!req.body.threadID) {
+    return res.status(400).send({ message: "Thread ID is required!" });
+  }
+
+  if(req.body.commentID?.length >= 0) {
+    var checkComment = await Comment.findById(req.body.commentID);
+    if(!checkComment) {
+      return res.status(400).send({ message: "Comment does not exist!" });
+    }
+  }
+
+  const thread = await Thread.findById(req.body.threadID);
+
+  const user = await User.findOne({fullName: req.body.postedBy});
+  if(!user) {
+    return res.status(400).send({ message: "User does not exist!" });
+  }
+
+  console.log(user);
+
+  var schema = {
+    postedBy: user.id,
+    comment: req.body.comment,
+    replies: req.body.replies,
+  }
+
+  const { error } = validateComment(schema, res);
+
+  if (error) {
+    console.log("validation error");
+    return res.status(400).send({ message: `${error.details[0].message}` });
+  }
+
+  let comment = new Comment(schema);
+
+  const result = await comment.save();
+
+  if (result) {
+
+    var populatedResult = await result.populate('postedBy', 'fullName ERP -_id');
+
+    if (!populatedResult) {
+      return res.status(500).send({ message: "Error populating comment!"});
+    }
+
+    if(checkComment) {
+      
+        checkComment.replies.push(result.id);
+        await checkComment.save();
+      
+    } else {
+      thread.comments.push(result.id);
+      await thread.save();
+    }
+    res.status(200).send({
+      message: "Comment created successfully!",
+      populatedResult,
+    });
+  } else {
+    res.status(500).send({
+      message: "Error creating comment",
+    });
+  }
+
 }
