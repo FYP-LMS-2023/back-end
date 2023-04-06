@@ -61,13 +61,15 @@ const userSchema = new mongoose.Schema({
     default: "0000000000",
     required: true,
   },
+
   CGPA: {
     type: Number,
-    default: 0.0,
-    required: function () {
-      return this.userType != "Admin";
+    default: function () {
+      if (this.userType == "Student") return 0.0;
     },
+    required: false
   },
+
   Program: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Program",
@@ -94,6 +96,10 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
+  deleteFlag: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.methods.generateAuthToken = function () {
@@ -104,7 +110,10 @@ userSchema.methods.generateAuthToken = function () {
       ERP: this.ERP,
       userType: this.userType,
     },
-    process.env.jwtPrivateKey
+    process.env.jwtPrivateKey,
+    {
+      expiresIn: '24h'
+    }
   );
   return token;
 };
@@ -112,19 +121,14 @@ userSchema.methods.generateAuthToken = function () {
 const User = new mongoose.model("User", userSchema);
 
 function validateUser(user) {
- 
   var schema = Joi.object({
     fullName: Joi.string().min(5).max(50).required(),
-    ERP: Joi.string()
-      .min(5)
-      .max(5)
-      .when("userType", {
-        not: "Admin",
-        then: Joi
-          .required()
-        }),
-      //otherwise: Joi.string().default("00000"),
-      //.when("userType", { not: "Admin", then: Joi.required() }),
+    ERP: Joi.string().min(5).max(5).when("userType", {
+      not: "Admin",
+      then: Joi.required(),
+    }),
+    //otherwise: Joi.string().default("00000"),
+    //.when("userType", { not: "Admin", then: Joi.required() }),
     email: Joi.string().min(5).max(255).required().email(),
     userType: Joi.string().valid("Student", "Faculty", "Admin").required(),
     password: Joi.string().min(6).required(),
@@ -136,14 +140,14 @@ function validateUser(user) {
     }),
     CGPA: Joi.number()
       .min(0.0)
-      .max(4.0)
-      .when("userType", { not: "Admin", then: Joi.required() }),
+      .max(4.0),
+      // .when("userType", { not: "Admin", then: Joi.required() }),
     Program: Joi.string().when("userType", {
       not: "Admin",
       then: Joi.required(),
     }),
     notifications: Joi.array().required(),
-  })
+  });
   return schema.validate(user);
 }
 

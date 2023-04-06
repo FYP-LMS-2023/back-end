@@ -39,7 +39,7 @@ exports.createUser = async (req, res, next) => {
     isAdmin = true;
   }
 
-  const { error } = validateUser(schema,res);
+  const { error } = validateUser(schema);
   
   if (error)
     return res.status(400).send({ message: `${error.details[0].message}` });
@@ -143,6 +143,9 @@ exports.login = async (req, res, next) => {
   if (!user)
     return res.status(400).send({ message: "Invalid email or password!" });
 
+  if (user.deleteFlag) return res.status(403).send({ message: "Account has been blocked by admin."})
+
+
   const validPassword = await bcrypt.compare(req.body.password, user.password);
   if (!validPassword)
     return res.status(400).send({ message: "Invalid email or password!" });
@@ -154,7 +157,8 @@ exports.login = async (req, res, next) => {
 
 exports.getProfile = async (req, res, next) => {
   const user = await User.findById(req.user._id).select("-password");
-  res.status(200).send(user);
+  if (!user) res.status(400).send({message: "User doesn't exist anymore!"})
+  res.status(200).send({user});
 };
 
 exports.createSemester = async (req, res, next) => {
