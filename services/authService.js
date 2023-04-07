@@ -2,8 +2,6 @@ const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const { User, validateUser } = require("../models/User.js");
-const Program = require("../models/Program");
-const { Semester, validateSemester} = require("../models/Semester.js");
 const { Announcement, validateAnnouncement } = require("../models/Announcement.js");
 const { Channel, validateChannel } = require("../models/Channel.js");
 const { Thread, validateThread } = require("../models/Thread.js");
@@ -108,29 +106,7 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-exports.createProgram = async (req, res, next) => {
-  const program = new Program({
-    name: "Bachelors Of Science in Computer Science",
-    code: "BSCS",
-    description:
-      "The Department of Computer Science is one of the two departments at the School of Mathematics and Computer Science (SMCS) at the Institute of Business Administration (IBA) Karachi. The department offers bachelor, master and doctoral degree programs in Computer Science. The department has recently launched a long-awaited master's program in Data Science.",
-    electives: [],
-    cores: [],
-    faculty: [],
-  });
 
-  const result = await program.save();
-
-  if (result) {
-    res.status(200).send({
-      result,
-    });
-  } else {
-    res.status(400).send({
-      mssg: "error!",
-    });
-  }
-};
 
 exports.login = async (req, res, next) => {
   var Schema = Joi.object({
@@ -164,34 +140,7 @@ exports.getProfile = async (req, res, next) => {
   res.status(200).send({user});
 };
 
-exports.createSemester = async (req, res, next) => {
 
-  var schema = {
-    semesterName: req.body.semesterName,
-    semesterStartDate: req.body.semesterStartDate,
-    semesterEndDate: req.body.semesterEndDate,
-  };
-
-  const { error } = validateSemester(schema, res);
-  if (error){
-    console.log("validation error");
-    return res.status(400).send({ message: `${error.details[0].message}` });
-  }
-
-  let semester = new Semester(schema);
-  const result = await semester.save();
-
-  if (result) {
-    res.status(200).send({
-      message: "Semester created successfully!",
-      result,
-    });
-  } else {
-    res.status(500).send({
-      message: "Error creating semester",
-    });
-  }
-}
 
 exports.createAnnouncement = async(req, res, next) => {
   var schema = {
