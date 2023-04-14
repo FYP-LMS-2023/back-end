@@ -262,25 +262,148 @@ exports.getChannel = async (req, res, next) => {
   if (!channel) {
     return res.status(400).send({ message: "Channel does not exist!" });
   }
-  // var popResult = await channel.populate({
-  //   path: 'threads', 
-  //   populate: {path: 'postedBy', select: 'fullName ERP -_id'}});
 
-  // var populatedResult = await channel.populate('threads.postedBy', 'fullName -_id');
-  // res.status(200).send(populatedResult);
-
-  var populatedResult = await channel.populate({
+  var populatedChannel = await channel.populate({
     path: 'threads',
     populate: [
       { path: 'postedBy', select: 'fullName ERP -_id' },
-      { path: 'comments', populate: { path: 'postedBy', select: 'fullName ERP -_id' } }
-    ]
+    ],
+    options: { sort: { datePosted: -1 } },
   })
 
-  res.status(200).send(populatedResult);  
+  res.status(200).send(populatedChannel);
+  // var populatedResult = await channel.populate({
+  //   path: 'threads',
+  //   populate: [
+  //     { path: 'postedBy', select: 'fullName ERP -_id' },
+  //     { path: 'comments', populate: { path: 'postedBy', select: 'fullName ERP -_id' } }
+  //   ]
+  // })
 };
 
-exports.createComment = async (req, res, next) => {
+exports.getThread = async (req, res, next) => {
+  const thread = await Thread.findById(req.params.id);
+  if (!thread) {
+    return res.status(400).send({ message: "Thread does not exist!" });
+  }
+
+  var populatedThread = await thread.populate({
+    path: 'comments',
+    populate: [
+      { path: 'postedBy', select: 'fullName ERP -_id' },
+      { path: 'replies', populate: { path: 'userID', select: 'fullName ERP -_id' } }
+    ],
+    options: { sort: { datePosted: -1 } },
+  })
+
+  if (!populatedThread) {
+    return res.status(400).send({ message: "Thread does not exist!" });
+  }
+  res.status(200).send(populatedThread);
+};
+
+
+exports.createCommentOnThread = async (req, res, next) => {
+  if(!req.body.threadID) {
+    return res.status(400).send({ message: "Thread ID is required!" });
+  }
+
+  if(!req.body.postedBy) {
+    return res.status(400).send({ message: "Posted By is required!" });
+  }
+  
+  const thread = await Thread.findById(req.body.threadID);
+
+  if(!thread) {
+    return res.status(400).send({ message: "Thread does not exist!" });
+  }
+
+  const user = await User.findOne({fullName: req.body.postedBy});
+  if(!user) {
+    return res.status(400).send({ message: "User does not exist!" });
+  }
+
+  var schema = {
+    postedBy: user.id,
+    comment: req.body.comment,
+    replies: []
+  }
+
+  const {error} = validateComment(schema, res);
+  if(error) {
+    console.log("validation error");
+    return res.status(400).send({ message: `${error.details[0].message}` });
+  }
+
+  let comment = new Comment(schema);
+  const result = await comment.save();
+
+  if (result) {
+    thread.comments.push(result.id);
+    await thread.save();
+
+    var populatedResult = await result.populate('postedBy', 'fullName ERP -_id');
+
+    if (!populatedResult) {
+      return res.status(500).send({ message: "Error populating comment!"});
+    } else {
+      res.status(200).send({
+        message: "Comment created successfully!",
+        result,
+      });
+    }    
+  } else {
+    res.status(500).send({
+      message: "Error creating comment",
+    });
+  }
+};
+
+exports.replyToComment = async (req, res, next) => {
+  if(!req.body.commentID) {
+    return res.status(400).send({ message: "Comment ID is required!" });
+  }
+  if(!req.body.postedBy) {
+    return res.status(400).send({ message: "Posted By is required!" });
+  }
+  if(!req.body.repliedComment) {
+    return res.status(400).send({ message: "Comment for reply is required!" });
+  }
+
+  var comment = await Comment.findById(req.body.commentID);
+  if(!comment) {
+    return res.status(400).send({ message: "Comment does not exist!" });
+  }
+
+  var user = await User.findOne({fullName: req.body.postedBy})
+
+  if(!user) {
+    return res.status(400).send({ message: "User does not exist!" });
+  }
+
+  //console.log(user);
+
+  comment.replies.push({
+    userID: user._id,
+    repliedComment: req.body.repliedComment
+  });
+
+  const result = await comment.save();
+  if(result) {
+    res.status(200).send({
+      message: "Reply created successfully!",
+      result,
+    });
+  } else {
+    res.status(500).send({
+      message: "Error creating reply",
+    });
+  }
+};
+
+//DONT USE THIS ONE
+exports.createComment = async (req, res, next) => { //DONT USE THIS ONE
+//DONT USE THIS ONE
   if(!req.body.threadID && !req.body.commentID) {
     return res.status(400).send({ message: "Thread ID or Comment ID is required!" });
   }
@@ -302,12 +425,10 @@ exports.createComment = async (req, res, next) => {
     return res.status(400).send({ message: "User does not exist!" });
   }
 
-  console.log(user);
-
   var schema = {
     postedBy: user.id,
     comment: req.body.comment,
-    replies: req.body.replies,
+    replies: [],
   }
 
   const { error } = validateComment(schema, res);
@@ -330,10 +451,8 @@ exports.createComment = async (req, res, next) => {
     }
 
     if(checkComment) {
-      
-        checkComment.replies.push(result.id);
-        await checkComment.save();
-      
+      checkComment.replies.push(result.postedBy, result.comment);
+      await checkComment.save();
     } else {
       thread.comments.push(result.id);
       await thread.save();
@@ -347,5 +466,4 @@ exports.createComment = async (req, res, next) => {
       message: "Error creating comment",
     });
   }
-
-}
+} //DONT USE THIS ONE
