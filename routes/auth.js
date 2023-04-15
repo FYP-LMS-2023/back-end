@@ -20,5 +20,9 @@ router.post("/createCommentOnThread", auth, asyncMiddleware(authService.createCo
 router.post("/replyToComment", auth, asyncMiddleware(authService.replyToComment));
 router.get("/getThread/:id", auth, asyncMiddleware(authService.getThread));
 
+router.post("/createCourse", auth, asyncMiddleware(authService.createCourse));
+router.get("/getCourse/:id", auth, asyncMiddleware(authService.getCourse));
+router.patch("/updateCourse/:id", auth, asyncMiddleware(authService.updateCourse));
+
 
 module.exports = router;
