@@ -8,7 +8,7 @@ const { Thread, validateThread } = require("../models/Thread.js");
 const { Comment, validateComment } = require("../models/Comment.js");
 
 exports.test = (req, res, next) => {
-  res.send("Test");
+  res.send({message: "This is not a test!"});
 };
 
 exports.createUser = async (req, res, next) => {
