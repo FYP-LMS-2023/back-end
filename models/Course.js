@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi)
+
 require("dotenv").config();
 
 
@@ -9,6 +11,7 @@ const courseSchema = new mongoose.Schema({
   courseCode: {
     type: String,
     required: true,
+    unique: true,
   },
   courseName: {
     type: String,
@@ -38,19 +41,28 @@ const courseSchema = new mongoose.Schema({
 
 const Course = mongoose.model("Course", courseSchema);
 
-function validatecourse (course) {
-  var schema = Joi.object({
-    courseCode: Joi.string().required(),
-    courseName: Joi.string().required(),
+function validateCourse(course) {
+  const schema = Joi.object({
+    courseCode: Joi.string().trim().required(),
+    courseName: Joi.string().trim().required(),
     creditHours: Joi.number().required(),
-    courseDescription: Joi.string().required(),
+    courseDescription: Joi.string().trim().required(),
     classes: Joi.array().items(Joi.objectId()),
   });
   return schema.validate(course);
-
 }
+
+function validateCourseUpdate(course) {
+  const schema = Joi.object({
+    courseName: Joi.string().trim().min(1),
+    creditHours: Joi.number().min(1),
+    courseDescription: Joi.string().trim().min(1),
+  }).min(1); // require at least one field to be present
+  return schema.validate(course);
+} 
 
 module.exports = {
   Course,
-  validatecourse,
+  validateCourse,
+  validateCourseUpdate,
 }

@@ -134,7 +134,7 @@ const classSchema = new mongoose.Schema({
 
 const Class = new mongoose.model("Class", classSchema);
 
-function validateclass(classes) {
+function validateClass(classes) {
   var schema = Joi.object({
     semesterID: Joi.objectId.required(),
     teacherID: Joi.objectId().required(),
@@ -154,5 +154,5 @@ function validateclass(classes) {
 
 module.exports = {
   Class,
-  validateclass,
+  validateClass,
 }
