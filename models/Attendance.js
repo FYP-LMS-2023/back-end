@@ -3,17 +3,6 @@ const Joi = require("joi");
 require("dotenv").config();
 
 const attendanceSchema = new mongoose.Schema({
-  classID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Class",
-    required: true,
-    validate: {
-      validator: function (v) {
-        return mongoose.Types.ObjectId.isValid(v);
-      },
-      message: (props) => `${props.value} is not a valid class id!`,
-    },
-  },
   sessions: [
     {
       date: {
@@ -25,7 +14,7 @@ const attendanceSchema = new mongoose.Schema({
           studentID: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true,
+            //required: true,
             validate: {
               validator: function (v) {
                 return mongoose.Types.ObjectId.isValid(v);
@@ -35,7 +24,7 @@ const attendanceSchema = new mongoose.Schema({
           },
           present: {
             type: Boolean,
-            required: true,
+            //required: true,
             default: true,
           },
         },
@@ -48,7 +37,7 @@ const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 function validateAttendance(attendance){
   var schema = Joi.object({
-    classID: Joi.string().required(),
+    //classID: Joi.string().required(),
     sessions: Joi.array().items(Joi.object({
       date: Joi.date().required(),
       attendance: Joi.array().items(Joi.object({

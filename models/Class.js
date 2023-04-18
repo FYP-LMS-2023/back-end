@@ -14,26 +14,29 @@ const classSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid class id!`,
     },
   },
-  teacherID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    validate: {
-      validator: function (v) {
-        return mongoose.Types.ObjectId.isValid(v);
+  teacherIDs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      //required: true,
+      validate: {
+        validator: function (v) {
+          return mongoose.Types.ObjectId.isValid(v);
+        },
+        message: (props) => `${props.value} is not a valid teacher id!`,
       },
-      message: (props) => `${props.value} is not a valid teacher id!`,
     },
-  },
+  ],
   syllabus: {
     type: String,
+    default: "Syllabus not uploaded yet",
     //required: true,
   },
   studenList: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      //required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
@@ -60,7 +63,7 @@ const classSchema = new mongoose.Schema({
     ref: "Channel",
     required: true,
     validate: {
-      validtor: function (v) {
+      validator: function (v) {
         return mongoose.Types.ObjectId.isValid(v);
       },
       message: (props) => `${props.value} is not a valid channel id!`,
@@ -70,7 +73,7 @@ const classSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Announcement",
-      required: true,
+      //required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
@@ -96,7 +99,7 @@ const classSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Resource",
-      required: true,
+      //required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
@@ -109,7 +112,7 @@ const classSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Assignment",
-      required: true,
+      //required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
@@ -122,6 +125,7 @@ const classSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Attendance",
+      required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
@@ -130,29 +134,34 @@ const classSchema = new mongoose.Schema({
       },
     },
   ],
+  startDate: {
+    type: Date,
+    required: true,
+    
+  }
 });
 
-const Class = new mongoose.model("Class", classSchema);
+const Classes = new mongoose.model("Classes", classSchema);
 
-function validateClass(classes) {
-  var schema = Joi.object({
-    semesterID: Joi.objectId.required(),
-    teacherID: Joi.objectId().required(),
-    syllabus: Joi.string(),
-    studenList: Joi.array().items(Joi.objectId()),
-    TA: Joi.array().items(Joi.objectId()),
-    Channel: Joi.objectId().required(),
-    Announcement: Joi.array().items(Joi.objectId()),
-    Quizes: Joi.array().items(Joi.objectId()),
-    Resources: Joi.array().items(Joi.objectId()),
-    Assignments: Joi.array().items(Joi.objectId()),
-    Attendance: Joi.array().items(Joi.objectId()),
-  });
+// function validateClass(classes) {
+//   var schema = Joi.object({
+//     semesterID: Joi.objectId.required(),
+//     teacherID: Joi.objectId().required(),
+//     syllabus: Joi.string(),
+//     studenList: Joi.array().items(Joi.objectId()),
+//     TA: Joi.array().items(Joi.objectId()),
+//     Channel: Joi.objectId().required(),
+//     Announcement: Joi.array().items(Joi.objectId()),
+//     Quizes: Joi.array().items(Joi.objectId()),
+//     Resources: Joi.array().items(Joi.objectId()),
+//     Assignments: Joi.array().items(Joi.objectId()),
+//     Attendance: Joi.array().items(Joi.objectId()),
+//   });
 
-  return schema.validate(classes);
-}
+//   return schema.validate(classes);
+// }
 
 module.exports = {
-  Class,
-  validateClass,
-}
+  Classes,
+  //validateClass,
+};
