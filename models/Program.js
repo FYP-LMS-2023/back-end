@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 require("dotenv").config();
-
+Joi.objectId = require("joi-objectid")(Joi);
 
 const programSchema = new mongoose.Schema({
   name: {
@@ -64,7 +64,7 @@ const Program = mongoose.model("Program", programSchema);
 function validateProgram(program) {
   var schema = Joi.object({
     name: Joi.string().required(),
-    code: Joi.string().required(),
+    code: Joi.string().required().uppercase(),
     description: Joi.string().required(),
     electives: Joi.array().items(Joi.objectId()),
     cores: Joi.array().items(Joi.objectId()),

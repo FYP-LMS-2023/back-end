@@ -5,6 +5,15 @@ const morgan = require("morgan");
 const error = require("./middlewares/errors");
 const authRouter = require("./routes/auth");
 const adminRouter = require("./routes/admin");
+const programRouter = require("./routes/program");
+const courseRouter = require("./routes/course");
+const classRouter = require("./routes/class");
+const channelRouter = require("./routes/channel");
+const announcementRouter = require("./routes/announcement");
+const attendanceRouter = require("./routes/attendance");
+const semesterRouter = require("./routes/semester")
+
+
 const connectDB = require("./config/db");
 
 const app = express();
@@ -30,6 +39,13 @@ if (app.get("env") === "development") {
 app.use(express.json());
 app.use("/admin", adminRouter);
 app.use("/auth", authRouter);
+app.use("/program", programRouter);
+app.use("/course", courseRouter);
+app.use("/class", classRouter);
+app.use("/channel", channelRouter);
+app.use("/announcement", announcementRouter);
+app.use("/attendance", attendanceRouter);
+app.use("/semester", semesterRouter)
 app.use(error);
 
 const PORT = process.env.PORT;
