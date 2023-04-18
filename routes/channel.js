@@ -3,7 +3,7 @@ const router = express.Router();
 const channelService = require("../services/channelService");
 const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const auth = require("../middlewares/auth");
-
+const faculty = require("../middlewares/faculty");
 
 router.post("/createChannel", auth, asyncMiddleware(channelService.createChannel));
 router.post("/createThread", auth, asyncMiddleware(channelService.createThread));
