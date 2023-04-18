@@ -21,7 +21,7 @@ const { Semester, validateSemester } = require("../models/Semester.js");
 const moment = require("moment");
 
 exports.test = (req, res, next) => {
-  res.send("Test");
+  res.send({message: "This is not a test!"});
 };
 
 exports.createUser = async (req, res, next) => {
