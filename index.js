@@ -1,7 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const morgan = require("morgan");
+const methodOverride = require("method-override");
 const error = require("./middlewares/errors");
 const authRouter = require("./routes/auth");
 const adminRouter = require("./routes/admin");
@@ -11,8 +13,8 @@ const classRouter = require("./routes/class");
 const channelRouter = require("./routes/channel");
 const announcementRouter = require("./routes/announcement");
 const attendanceRouter = require("./routes/attendance");
-const semesterRouter = require("./routes/semester")
-
+const semesterRouter = require("./routes/semester");
+const assignmentRouter = require("./routes/assignment");
 
 const connectDB = require("./config/db");
 
@@ -36,7 +38,10 @@ if (app.get("env") === "development") {
   console.log("Morgan logging enabled...");
 }
 
-app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true, limit: "16mb" }));
+app.use(bodyParser.json({limit: "16mb"}));
+app.use(bodyParser.raw({limit: "16mb"}));
+
 app.use("/admin", adminRouter);
 app.use("/auth", authRouter);
 app.use("/program", programRouter);
@@ -45,7 +50,8 @@ app.use("/class", classRouter);
 app.use("/channel", channelRouter);
 app.use("/announcement", announcementRouter);
 app.use("/attendance", attendanceRouter);
-app.use("/semester", semesterRouter)
+app.use("/semester", semesterRouter);
+app.use("/assignment", assignmentRouter);
 app.use(error);
 
 const PORT = process.env.PORT;

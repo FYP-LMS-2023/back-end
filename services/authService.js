@@ -1,11 +1,41 @@
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
+const formidable = require("formidable");
 const { User, validateUser } = require("../models/User.js");
+const Test = require("../models/test");
 
+exports.test = async (req, res, next) => {
+  //get base64 db
+  const result = await Test.find();
+  // console.log(result[0].file.valueOf());
+  // var base64String = btoa(
+  //   String.fromCharCode.apply(null, new Uint8Array(result[0].file))
+  // );
 
-exports.test = (req, res, next) => {
-  res.send({message: "This is not a test!"});
+  
+  return res.json({ reuslt: result[0].file });
+
+  //upload base64 to db
+
+  // const newTest = new Test({
+  //   file: req.body.file,
+  // });
+
+  // const result = await newTest.save();
+  // return res.json({ result });
+  // const form = formidable({ multiples: true });
+
+  // form.parse(req, (err, fields, files) => {
+  //   if (err) {
+  //     console.log(err);
+  //     return res.send({ message: "error reading form data" });
+  //   }
+
+  //   return res.json({ fields, fixes });
+  // });
+  // console.log(req.body)
+  // res.send({message: "This is not a test!"});
 };
 
 exports.createUser = async (req, res, next) => {
@@ -136,8 +166,3 @@ exports.getProfile = async (req, res, next) => {
   if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
   res.status(200).send({ user });
 };
-
-
-
-
-

@@ -5,6 +5,7 @@ const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const auth = require("../middlewares/auth");
 const admin = require("../middlewares/admin");
 
+
 router.post("/createCourse", [auth, admin], asyncMiddleware(courseService.createCourse));
 router.get("/getAllCourses", auth, asyncMiddleware(courseService.getAllCourses));
 router.get("/getCourse/:id", auth, asyncMiddleware(courseService.getCourse));
