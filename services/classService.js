@@ -1,6 +1,9 @@
 const { Classes } = require("../models/Class.js");
 const { Semester, validateSemester } = require("../models/Semester.js");
 const { Channel, validateChannel } = require("../models/Channel.js");
+const { User } = require("../models/User.js");
+const { Attendance } = require("../models/Attendance.js");
+
 
 const {
   Course,
@@ -85,4 +88,165 @@ exports.createClass = async (req, res, next) => {
       });
     }
   };
+
+  exports.assignTeacher = async (req, res, next) => {
+    if(!req.body.classID){
+      return res.status(400).send({message: "Class ID is required!"});
+    }
+    if(!req.body.teacherID){
+      return res.status(400).send({message: "Teacher ID is required!"});
+    }
+    var classObj = await Classes.findById(req.body.classID);
+    if(!classObj){
+      return res.status(400).send({message: "Class does not exist!"});
+    }
+    var teacher =  await User.findById(req.body.teacherID);
+    if(!teacher){
+      return res.status(400).send({message: "Teacher does not exist!"});
+    }
+    if(teacher.userType != "Faculty"){
+      return res.status(400).send({message: "User is not a teacher!"});
+    }
+    if (classObj.teacherIDs.includes(req.body.teacherID)) {
+      return res.status(400).send({ message: "Teacher already assigned!" });
+    }
+    if (classObj.teacherIDs.length >= 1) {
+      return res.status(400).send({ message: "Class already has a teacher!" });
+    }
+    classObj.teacherIDs.push(req.body.teacherID);
+    const result = await classObj.save();
+    if (result) {
+      res.status(200).send({
+        message: "Teacher assigned successfully!",
+        result,
+      });
+    } else {
+      res.status(500).send({
+        message: "Error assigning teacher",
+      });
+    }
+  }
+
+  exports.assignTA = async (req, res, next) => {
+    if(!req.body.classID){
+      return res.status(400).send({message: "Class ID is required!"});
+    }
+    if(!req.body.taID){
+      return res.status(400).send({message: "TA ID is required!"});
+    }
+    var classObj = await Classes.findById(req.body.classID);
+    if(!classObj){
+      return res.status(400).send({message: "Class does not exist!"});
+    }
+    var student = await User.findById(req.body.taID);
+    if(!student){
+      return res.status(400).send({message: "Student does not exist!"});
+    }
+    if(student.userType != "Student"){
+      return res.status(400).send({message: "User is not a student!"});
+    }
+    if (classObj.studentList.includes(req.body.taID)) {
+      return res.status(400).send({ message: "Student already assigned!" });
+    }
+    classObj.TA.push(req.body.taID);
+    const result = await classObj.save();
+    if (result) {
+      res.status(200).send({
+        message: "TA assigned successfully!",
+        result,
+      });
+    } else {
+      res.status(500).send({
+        message: "Error assigning TA",
+      });
+    }
+  }
+
+  exports.getClassDetails = async (req, res, next) => {
+    const { classID } = req.params;
+    const classObj = await Classes.findById(classID);
+    if (!classObj) {
+      return res.status(400).send({ message: "Class does not exist!" });
+    }
+
+    const classDetails = await Classes.findById(classID)
+      .populate('studentList', 'fullName ERP')
+      .populate('teacherIDs', 'fullName')
+      .populate('TA', 'fullName ERP') 
+
+    res.status(200).send({
+      message: "Class details received successfully!",
+      classDetails,
+    });
+  }
+  
+  //need to make getClassDetails for student only => it wont have eifnormation about all assigments, quizzes and submissions, etc.
+
+  exports.enrollStudent = async (req, res, next) => {
+    const { studentID, classID } = req.body;
+    if (!studentID) {
+      return res.status(400).send({ message: "Student ID is required!" });
+    }
+    if (!classID) {
+      return res.status(400).send({ message: "Class ID is required!" });
+    }
+    var classObj = await Classes.findById(classID);
+    if (!classObj) {
+      return res.status(400).send({ message: "Class does not exist!" });
+    }
+    var student = await User.findById(studentID);
+    if (!student) {
+      return res.status(400).send({ message: "Student does not exist!" });
+    }
+    if (student.userType != "Student") {
+      return res.status(400).send({ message: "User is not a student!" });
+    }
+
+    const attendance = await Attendance.findById(classObj.Attendance[0]);
+    if (!attendance) {
+      return res.status(400).send({ message: "Attendance does not exist!" });
+    }
+
+    classObj.studentList.push(studentID);
+    await classObj.save();
+
+    attendance.sessions.forEach((session) => {
+      session.attendance.push({
+        studentID: student._id,
+        present: true,
+      });
+    });
+
+    await attendance.save();
+    res.status(200).send({
+      message: "Student enrolled successfully!",
+      updatedClass: classObj,
+      updatedAttendance: attendance,
+    });
+  }
+
+  exports.uploadSyllabus = async (req, res, next) => {
+    const {classID} = req.body.classID;
+    if(!classID){
+      return res.status(400).send({message: "Class ID is required!"});
+    }
+    var classObj = await Classes.findById(classID);
+    if(!classObj){
+      return res.status(400).send({message: "Class does not exist!"});
+    }
+    if(!req.body.syllabus) {
+      return res.status(400).send({message: "Syllabus is required!"});
+    }
+    classObj.syllabus = req.body.syllabus;
+    await classObj.save();
+    res.status(200).send({
+      message: "Syllabus uploaded successfully!",
+      classObj
+    })
+  }
+
+
+
+
+
   

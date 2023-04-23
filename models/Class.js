@@ -32,7 +32,7 @@ const classSchema = new mongoose.Schema({
     default: "Syllabus not uploaded yet",
     //required: true,
   },
-  studenList: [
+  studentList: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
