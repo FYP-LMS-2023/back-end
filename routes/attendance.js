@@ -9,5 +9,8 @@ const faculty = require("../middlewares/faculty");
 
 router.post("/createAttendance", [auth, admin], asyncMiddleware(attendanceService.createAttendance));
 router.get("/getAttendance/:id", [auth, faculty], asyncMiddleware(attendanceService.getAttendanceOfClass));
+router.post("/getAttendanceBySession", [auth, faculty], asyncMiddleware(attendanceService.getAttendanceBySession));
+router.post("/getMyAttendanceOfClass", [auth], asyncMiddleware(attendanceService.getMyAttendanceOfClass));
+router.post("/toggleAttendance", [auth, admin], asyncMiddleware(attendanceService.toggleAttendance));
 
 module.exports = router;

@@ -145,7 +145,7 @@ exports.createClass = async (req, res, next) => {
     if(student.userType != "Student"){
       return res.status(400).send({message: "User is not a student!"});
     }
-    if (classObj.studentList.includes(req.body.taID)) {
+    if (classObj.TA.includes(req.body.taID)) {
       return res.status(400).send({ message: "Student already assigned!" });
     }
     classObj.TA.push(req.body.taID);
@@ -165,6 +165,7 @@ exports.createClass = async (req, res, next) => {
   exports.getClassDetails = async (req, res, next) => {
     const { classID } = req.params;
     const classObj = await Classes.findById(classID);
+    console.log(classID)
     if (!classObj) {
       return res.status(400).send({ message: "Class does not exist!" });
     }
@@ -205,6 +206,9 @@ exports.createClass = async (req, res, next) => {
     const attendance = await Attendance.findById(classObj.Attendance[0]);
     if (!attendance) {
       return res.status(400).send({ message: "Attendance does not exist!" });
+    }
+    if(classObj.studentList.includes(studentID)){
+      return res.status(400).send({message: "Student already enrolled!"});
     }
 
     classObj.studentList.push(studentID);

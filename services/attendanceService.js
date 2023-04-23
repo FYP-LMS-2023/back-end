@@ -135,7 +135,7 @@ const { User } = require("../models/User.js");
     }
     const absentDays = attendance.sessions.filter((session) => {
       const studentAttendance = session.attendance.find(
-        (entry) => entry.studentID.tostring() === studentID.tostring()
+        (entry) => entry.studentID.toString() === studentID.toString()
       );
       return studentAttendance && !studentAttendance.present; 
     })
@@ -144,10 +144,11 @@ const { User } = require("../models/User.js");
     res.status(200).send({
       message: "Attendance fetched successfully of Absent Days",
       absentDays,
+      absentCount: absentDays.length,
     });
   }
 
-  exports.getAttendanceBysession = async (req, res, next) => {
+  exports.getAttendanceBySession = async (req, res, next) => {
     const {classID, date, sessionNumber} = req.body;
     if (!classID) {
       return res.status(400).send({ message: "Class ID is required!" });
@@ -164,13 +165,17 @@ const { User } = require("../models/User.js");
       return res.status(400).send({ message: "Attendance does not exist!" });
     }
     let session;
+    console.log(date);
     if (date) {
       session = attendance.sessions.find(
-        (session) => moment(session.date).format("DD/MM/YYYY") === date);
+        //(session) => moment(session.date).format("DD/MM/YYYY") === date);
+        (session) => moment(session.date).format("YYYY-MM-DD") === moment(date).format("YYYY-MM-DD"));
     }
     else {
       session = attendance.sessions[sessionNumber-1];
     }
+    console.log(session)
+
 
     if (!session) {
       return res.status(400).send({ message: "Session does not exist!" });
@@ -189,7 +194,7 @@ const { User } = require("../models/User.js");
 
     res.status(200).send({
       message: "Session attendance fetched successfully!",
-      sessonNumber: sessionNumber ? sessionNumber : attendance.sessions.indexOf(session) + 1,
+      sessionNumber: sessionNumber ? sessionNumber : attendance.sessions.indexOf(session) + 1,
       date: moment(session.date).format("DD/MM/YYYY"),
       dayOfWeek: moment(session.date).format("dddd"),
       attendance: populatedAttendance,
@@ -212,10 +217,14 @@ const { User } = require("../models/User.js");
     if (!attendance) {
       return res.status(400).send({ message: "Attendance does not exist!" });
     }
+    const student = await User.findById(studentID);
+    if (!student) {
+      return res.status(400).send({ message: "Student does not exist!" });
+    }
     let session;
     if (date) {
       session = attendance.sessions.find(
-        (session) => moment(session.date).format("DD/MM/YYYY") === date);
+        (session) => moment(session.date).format("DD/MM/YYYY") === moment(date).format("DD/MM/YYYY"));
     }
     else {
       session = attendance.sessions[sessionNumber-1];
@@ -224,10 +233,11 @@ const { User } = require("../models/User.js");
       return res.status(400).send({ message: "Session does not exist!" });
     }
     const attendanceEntry = session.attendance.find(
-      (entry) => entry.studentID.tostring() === studentID.tostring());
+      (entry) => entry.studentID.toString() === studentID.toString());
     if (!attendanceEntry) {
       return res.status(400).send({ message: "Attendance entry does not exist!" });
     }
+    //attendance entry to see if the guy u r asking for attendance is enrolled in class or not
     attendanceEntry.present = !attendanceEntry.present;
     await attendance.save();
 
@@ -236,6 +246,8 @@ const { User } = require("../models/User.js");
       sessionNumber: sessionNumber ? sessionNumber : attendance.sessions.indexOf(session) + 1,
       date: moment(session.date).format("DD/MM/YYYY"),
       studentID,
+      fullName: student.fullName,
+      ERP: student.ERP,
       present: attendanceEntry.present,
     })
   }
