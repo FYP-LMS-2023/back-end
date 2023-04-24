@@ -15,6 +15,9 @@ const announcementRouter = require("./routes/announcement");
 const attendanceRouter = require("./routes/attendance");
 const semesterRouter = require("./routes/semester");
 const assignmentRouter = require("./routes/assignment");
+const quizRouter = require("./routes/quiz");
+const questionRouter = require("./routes/question");
+const answerRouter = require("./routes/answer");
 
 const connectDB = require("./config/db");
 
@@ -39,8 +42,8 @@ if (app.get("env") === "development") {
 }
 
 app.use(bodyParser.urlencoded({ extended: true, limit: "16mb" }));
-app.use(bodyParser.json({limit: "16mb"}));
-app.use(bodyParser.raw({limit: "16mb"}));
+app.use(bodyParser.json({ limit: "16mb" }));
+app.use(bodyParser.raw({ limit: "16mb" }));
 
 app.use("/admin", adminRouter);
 app.use("/auth", authRouter);
@@ -52,6 +55,9 @@ app.use("/announcement", announcementRouter);
 app.use("/attendance", attendanceRouter);
 app.use("/semester", semesterRouter);
 app.use("/assignment", assignmentRouter);
+app.use("/quiz", quizRouter);
+app.use("/question", questionRouter);
+app.use("/answer", answerRouter);
 app.use(error);
 
 const PORT = process.env.PORT;

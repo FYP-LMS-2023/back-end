@@ -82,7 +82,7 @@ const classSchema = new mongoose.Schema({
       },
     },
   ],
-  Quizes: [
+  Quizzes: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Quiz",
@@ -143,25 +143,25 @@ const classSchema = new mongoose.Schema({
 
 const Classes = new mongoose.model("Classes", classSchema);
 
-// function validateClass(classes) {
-//   var schema = Joi.object({
-//     semesterID: Joi.objectId.required(),
-//     teacherID: Joi.objectId().required(),
-//     syllabus: Joi.string(),
-//     studenList: Joi.array().items(Joi.objectId()),
-//     TA: Joi.array().items(Joi.objectId()),
-//     Channel: Joi.objectId().required(),
-//     Announcement: Joi.array().items(Joi.objectId()),
-//     Quizes: Joi.array().items(Joi.objectId()),
-//     Resources: Joi.array().items(Joi.objectId()),
-//     Assignments: Joi.array().items(Joi.objectId()),
-//     Attendance: Joi.array().items(Joi.objectId()),
-//   });
+function validateClass(classes) {
+  var schema = Joi.object({
+    semesterID: Joi.objectId().required(),
+    teacherID: Joi.objectId().required(),
+    syllabus: Joi.string(),
+    studenList: Joi.array().items(Joi.objectId()),
+    TA: Joi.array().items(Joi.objectId()),
+    Channel: Joi.objectId().required(),
+    Announcement: Joi.array().items(Joi.objectId()),
+    Quizes: Joi.array().items(Joi.objectId()),
+    Resources: Joi.array().items(Joi.objectId()),
+    Assignments: Joi.array().items(Joi.objectId()),
+    Attendance: Joi.array().items(Joi.objectId()),
+  });
 
-//   return schema.validate(classes);
-// }
+  return schema.validate(classes);
+}
 
 module.exports = {
   Classes,
-  //validateClass,
+  validateClass,
 };

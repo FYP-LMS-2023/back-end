@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
+Joi.objectId = require('joi-objectid')(Joi)
 require("dotenv").config();
 
 const quizSchema = new mongoose.Schema({
@@ -41,34 +42,6 @@ const quizSchema = new mongoose.Schema({
     enum: ["open", "closed", "pending"], //can start later is liye pending
     default: "pending",
   },
-  resubmissionsAllowed: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  resubmissionDeadline: {
-    type: Date,
-  },
-  attachments: [
-    {
-      filename: {
-        type: String,
-        required: true,
-      },
-      file: {
-        type: Buffer,
-        required: true,
-      },
-      fileSize: {
-        type: Number,
-        required: true,
-      },
-      fileType: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
   submissions: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -125,16 +98,9 @@ function validateQuiz(quiz) {
     startDate: Joi.date().required(),
     classId: Joi.objectId().required(),
     status: Joi.string().valid("open", "closed", "pending").required(),
-    resubmissionsAllowed: Joi.number().min(0).required(),
-    resubmissionDeadline: Joi.date(),
-    attachments: Joi.array().items(
-      Joi.object({
-        filename: Joi.string().min(5).max(255).required(),
-        file: Joi.binary().required(),
-        fileSize: Joi.number().min(0).required(),
-        fileType: Joi.string().min(5).max(255).required(),
-      })  
-    ),
+    submissions: Joi.array().items(Joi.objectId()).required(),
+    questions: Joi.array().items(Joi.objectId()).required(),
+    marks: Joi.number()
   });
   return schema.validate(quiz);
 }
