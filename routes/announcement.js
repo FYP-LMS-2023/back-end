@@ -9,6 +9,6 @@ router.post("/createAnnouncement", [auth, faculty], asyncMiddleware(announcement
 router.get("/getAnnouncements", [auth], asyncMiddleware(announcementService.getAnnouncements));
 router.get("/getAnnouncement/:id", [auth], asyncMiddleware(announcementService.getAnnouncement));
 router.put("/updateAnnouncement/:id", [auth, faculty], asyncMiddleware(announcementService.updateAnnouncement));
-router,delete("/deleteAnnouncement/:id", [auth, faculty], asyncMiddleware(announcementService.deleteAnnouncement));
+router.delete("/deleteAnnouncement/:id", [auth, faculty], asyncMiddleware(announcementService.deleteAnnouncement));
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const { Announcement, validateAnnouncement, validateAnnouncementUpdate } = require("../models/Announcement.js");
 
 const { User } = require("../models/User.js");
-const { Classes } = require("../models/Classes.js");
+const { Classes } = require("../models/Class.js");
 
 
 exports.createAnnouncement = async (req, res, next) => {
@@ -12,8 +12,8 @@ exports.createAnnouncement = async (req, res, next) => {
       postedBy: req.user._id,
     };
 
-    const user = await User.findById(req.body.postedBy);
-    const classA = await Classes.findByID(req.body.classID);
+    const user = await User.findById(req.user._id);
+    const classA = await Classes.findById(req.body.classID);
 
     if(!classA){
       return res.status(400).send({ message: "Class does not exist!" });
@@ -90,7 +90,7 @@ exports.createAnnouncement = async (req, res, next) => {
     if(!classA){
       return res.status(400).send({message: "Class does not exist!"});
     }
-    const announcements = await Announcement.find({_id: {$in: classA.announcements}})
+    const announcements = await Announcement.find({_id: {$in: classA.Announcement}})
       .populate("postedBy", "fullName ERP -_id");
     if(announcements){
       res.status(200).send({
@@ -122,7 +122,7 @@ exports.createAnnouncement = async (req, res, next) => {
 
   exports.deleteAnnouncement = async (req, res, next) => {
     const announcementID = req.params.id;
-    const announcement = await Announcement.findByID(announcementID);
+    const announcement = await Announcement.findById(announcementID);
     if (!announcement) {
       return res.status(400).send({ message: "Announcement does not exist!" });
     }
