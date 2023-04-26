@@ -148,7 +148,7 @@ function validateClass(classes) {
     semesterID: Joi.objectId().required(),
     teacherID: Joi.objectId().required(),
     syllabus: Joi.string(),
-    studenList: Joi.array().items(Joi.objectId()),
+    studentList: Joi.array().items(Joi.objectId()),
     TA: Joi.array().items(Joi.objectId()),
     Channel: Joi.objectId().required(),
     Announcement: Joi.array().items(Joi.objectId()),
@@ -156,6 +156,7 @@ function validateClass(classes) {
     Resources: Joi.array().items(Joi.objectId()),
     Assignments: Joi.array().items(Joi.objectId()),
     Attendance: Joi.array().items(Joi.objectId()),
+    startDate: Joi.date().required(),
   });
 
   return schema.validate(classes);

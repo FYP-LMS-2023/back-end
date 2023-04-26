@@ -44,8 +44,17 @@ function validateAnnouncement(announcement) {
   return schema.validate(announcement)
 }
 
+function validateAnnouncementUpdate(announcement) {
+  var schema = Joi.object({
+    title: Joi.string().min(5).max(50).optional(),
+    description: Joi.string().min(5).max(255).optional(),
+  }).min(1); // require at least one field to be present
+  return schema.validate(announcement)
+}
+
 
 module.exports = {
   Announcement,
   validateAnnouncement,
+  validateAnnouncementUpdate,
 }
