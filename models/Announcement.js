@@ -28,6 +28,10 @@ const announcementSchema = new mongoose.Schema({
     required: true,
     default: Date.now,
   },
+  announcementType: {
+    type: String,
+    enum: ['general', 'course', 'quiz', 'assignment', 'exam'],
+  }
 });
 
 const Announcement = mongoose.model("Announcement", announcementSchema);
@@ -40,6 +44,7 @@ function validateAnnouncement(announcement) {
     description: Joi.string().min(5).max(255).required(),
     postedBy: Joi.objectId().required(),
     datePosted: Joi.date().required(),
+    announcementType: Joi.string().valid('general', 'course', 'quiz', 'assignment', 'exam').required(),
   });
   return schema.validate(announcement)
 }
@@ -51,7 +56,6 @@ function validateAnnouncementUpdate(announcement) {
   }).min(1); // require at least one field to be present
   return schema.validate(announcement)
 }
-
 
 module.exports = {
   Announcement,

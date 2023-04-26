@@ -19,6 +19,7 @@ const quizRouter = require("./routes/quiz");
 const questionRouter = require("./routes/question");
 const answerRouter = require("./routes/answer");
 const submissionRouter = require("./routes/submission");
+const generalRouter = require("./routes/general");
 
 const connectDB = require("./config/db");
 
@@ -59,6 +60,7 @@ app.use("/assignment", assignmentRouter);
 app.use("/quiz", [quizRouter, submissionRouter]);
 app.use("/question", questionRouter);
 app.use("/answer", answerRouter);
+app.use("/general", generalRouter);
 
 app.use(error);
 

@@ -152,7 +152,7 @@ function validateClass(classes) {
     TA: Joi.array().items(Joi.objectId()),
     Channel: Joi.objectId().required(),
     Announcement: Joi.array().items(Joi.objectId()),
-    Quizes: Joi.array().items(Joi.objectId()),
+    Quizzes: Joi.array().items(Joi.objectId()),
     Resources: Joi.array().items(Joi.objectId()),
     Assignments: Joi.array().items(Joi.objectId()),
     Attendance: Joi.array().items(Joi.objectId()),

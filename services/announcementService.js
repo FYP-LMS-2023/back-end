@@ -2,6 +2,7 @@ const { Announcement, validateAnnouncement, validateAnnouncementUpdate } = requi
 
 const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
+const { ObjectId } = require("mongoose").Types;
 
 
 exports.createAnnouncement = async (req, res, next) => {
@@ -10,6 +11,7 @@ exports.createAnnouncement = async (req, res, next) => {
       description: req.body.description,
       datePosted: Date.now(),
       postedBy: req.user._id,
+      announcementType: req.body.announcementType,
     };
 
     const user = await User.findById(req.user._id);
@@ -24,9 +26,9 @@ exports.createAnnouncement = async (req, res, next) => {
     }
 
     if(
-      user.type !== 'Faculty' ||
+      user.userType !== 'Faculty' ||
       !classA.teacherIDs.some((teacherID) => 
-        teacherID.toString().equals(req.user._id.toString())  
+        teacherID.toString() === (req.user._id.toString())  
     )) {
       return res.status(400).send({ message: "You are not authorized to post announcements!" });
     }
@@ -91,7 +93,8 @@ exports.createAnnouncement = async (req, res, next) => {
       return res.status(400).send({message: "Class does not exist!"});
     }
     const announcements = await Announcement.find({_id: {$in: classA.Announcement}})
-      .populate("postedBy", "fullName ERP -_id");
+      .populate("postedBy", "fullName ERP -_id")
+      .sort({datePosted: -1});
     if(announcements){
       res.status(200).send({
         message: "Announcements fetched successfully!",
@@ -106,6 +109,9 @@ exports.createAnnouncement = async (req, res, next) => {
 
   exports.getAnnouncement = async (req, res, next) => {
     const announcementID = req.params.id;
+    if(!ObjectId.isValid(announcementID)){
+      return res.status(400).send({message: "Invalid announcement ID!"});
+    }
     const announcement = await Announcement.findById(announcementID)
       .populate("postedBy", "fullName ERP -_id");
     if(announcement){
