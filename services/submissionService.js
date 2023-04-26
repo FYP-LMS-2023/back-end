@@ -66,33 +66,38 @@ exports.submitQuiz = async (req, res, next) => {
   console.log(marksCalculated);
   schemaQuizSubmission.marksReceived = marksCalculated;
 
-  let quizSubmission = await new QuizSubmission(schemaQuizSubmission)
-   
+  let quizSubmission = new QuizSubmission(schemaQuizSubmission)
+  
 
   const result = await quizSubmission.save();
-  const populatedResult = await result.populate({
-    path: 'studentID',
-    select: 'fullName ERP'
-  })
-  .populate({
-    path: 'submittedFor',
-    populate: {
-      path: 'questions',
-      select: 'questionDescription marks',
+  
+  //populted result
+  const populatedQuizSubmission = await QuizSubmission.findById(result._id)
+  .populate([
+    {
+      path: "studentID",
+      select: "name email",
+    },
+    {
+      path: "submittedFor",
       populate: {
-        path: 'answers',
-        select: 'answerDescription'
+        path: "questions",
+        select: "questionDescription marks",
+        populate: {
+          path: 'answers',
+          select: 'answerDescription'
+        } 
       }
+    },
+    {
+      path: "submission.question",
+      select: "questionDescription marks correctAnswer",
+    },
+    {
+      path: "submission.answer",
+      select: "answerDescription",
     }
-  })
-  .populate({
-    path: 'submission.question',
-    select: 'questionDescription correctAnswer marks'  
-  })
-  .populate({
-    path: 'submission.answer',
-    select: 'answerDescription'
-  })
+  ]);
 
-  return res.json(populatedResult);
+  return res.json(populatedQuizSubmission);
 };
