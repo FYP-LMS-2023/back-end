@@ -25,9 +25,6 @@ exports.createQuestion = async (req, res, next) => {
 
   quiz.questions.push(result._id);
 
-  console.log(quiz.marks);
-  console.log(quiz.questions[0].marks);
-
   quiz.marks = quiz.marks + result.marks;
 
   const finalResult = await quiz.save();

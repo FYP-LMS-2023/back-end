@@ -18,6 +18,7 @@ const assignmentRouter = require("./routes/assignment");
 const quizRouter = require("./routes/quiz");
 const questionRouter = require("./routes/question");
 const answerRouter = require("./routes/answer");
+const submissionRouter = require("./routes/submission");
 
 const connectDB = require("./config/db");
 
@@ -55,9 +56,10 @@ app.use("/announcement", announcementRouter);
 app.use("/attendance", attendanceRouter);
 app.use("/semester", semesterRouter);
 app.use("/assignment", assignmentRouter);
-app.use("/quiz", quizRouter);
+app.use("/quiz", [quizRouter, submissionRouter]);
 app.use("/question", questionRouter);
 app.use("/answer", answerRouter);
+
 app.use(error);
 
 const PORT = process.env.PORT;
