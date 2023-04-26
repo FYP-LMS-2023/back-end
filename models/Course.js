@@ -28,7 +28,7 @@ const courseSchema = new mongoose.Schema({
   classes: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Class",
+      ref: "Classes",
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);

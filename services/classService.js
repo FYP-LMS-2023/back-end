@@ -3,6 +3,8 @@ const { Semester, validateSemester } = require("../models/Semester.js");
 const { Channel, validateChannel } = require("../models/Channel.js");
 const { User } = require("../models/User.js");
 const { Attendance } = require("../models/Attendance.js");
+const { Announcement } = require("../models/Announcement.js");
+
 
 
 const {
@@ -248,6 +250,134 @@ exports.createClass = async (req, res, next) => {
       classObj
     })
   }
+
+  exports.getMyActiveClasses = async (req, res, next) => {
+    const studentID = req.body.studentID;
+    if(!studentID){
+      return res.status(400).send({message: "Student ID is required!"});
+    }
+    const student = await User.findById(studentID);
+    if(!student || student.userType != "Student"){
+      return res.status(400).send({message: "Student does not exist!"});
+    }
+    const currentDate = new Date();
+
+    const activeSemester = await Semester.findOne({
+      //semesterStartDate: { $lte: currentDate },
+      semesterEndDate: { $gte: currentDate },
+    })
+    if(!activeSemester){
+      return res.status(400).send({message: "No active semester!"});
+    }
+
+    const enrolledClasses = await Classes.find({studentList: studentID})
+      .populate('studentList', 'fullName ERP')
+      .populate('teacherIDs', 'fullName')
+      .populate('TA', 'fullName ERP');
+    
+    if(!enrolledClasses){
+      return res.status(400).send({message: "No enrolled classes!"});
+    }
+    const activeClasses = enrolledClasses.filter((classObj) => {
+      return classObj.semesterID.toString() == activeSemester._id.toString();
+    });
+
+    const activeClassesWithCourseDetails = await Promise.all(
+      activeClasses.map(async (classObj) => {
+        const course = await Course.findOne({ classes: classObj._id });
+        return {
+          ...classObj.toObject(),
+          courseName: course.courseName,
+          courseCode: course.courseCode,
+        };
+      })
+    );
+
+    res.status(200).send({
+      message: "Active classes received successfully!",
+      activeClasses: activeClassesWithCourseDetails,
+  })
+}
+
+exports.getClassDetailsShaheer = async (req, res, next) => {
+  const classID = req.body.classID;
+  if (!classID) {
+    return res.status(400).send({ message: "Class ID is required!" });
+  }
+
+  try {
+    const classDetails = await Classes.findById(classID)
+  .populate({
+    path: 'studentList',
+    select: 'fullName ERP email profilePic',
+  })
+  .populate({
+    path: 'teacherIDs',
+    select: 'fullName email profilePic',
+  })
+  .populate({
+    path: 'TA',
+    select: 'fullName ERP email profilePic',
+  })
+  
+  if (!classDetails) {
+    return res.status(400).send({ message: "Class does not exist!" });
+  }
+
+  const courseDetails = await Course.findOne({ classes: classID }).select('courseName courseCode courseDescription creditHours');
+  if (!courseDetails) {
+    return res.status(400).send({ message: "Course does not exist!" });
+  }
+
+  const channelDetails = await Channel.findById(classDetails.Channel)
+  .populate({
+    path: 'threads',
+    options: { sort: { datePosted: -1}, limit: 3},
+    populate: {
+      path: 'postedBy',
+      select: 'fullName ERP email profilePicture'
+    },
+  });
+  if (!channelDetails) {
+    return res.status(400).send({ message: "Channel does not exist!" });
+  }
+
+  let latestThreads = channelDetails && channelDetails.threads? channelDetails.threads : [];
+  //let latestAnnouncements = classDetails.Announcement && classDetails.Announcement.length >0 ? classDetails.Announcement : null;
+  //first announcement only
+  //let latestAnnouncements = announcementDetails && classDetails.Announcement.length >0 ? classDetails.Announcement[0] : null;
+
+  let latestAnnouncements = [];
+  if (classDetails.Announcement.length > 0) {
+    const announcementDetails = await Announcement.findById(classDetails.Announcement[0])
+    .populate({
+      path: 'postedBy',
+      select: 'fullName email profilePicture'
+    });
+    latestAnnouncements.push(announcementDetails);
+  }
+
+  res.status(200).send({
+    message: "Class details received successfully!",
+    classDetails: {
+      course: courseDetails,
+      teacher: classDetails.teacherIDs[0],
+      class: {
+        student_list: classDetails.studentList,
+        TA: classDetails.TA,
+        numberOfStudents: classDetails.studentList.length,
+      }
+    },
+    channel: {
+      latestThreads: latestThreads,
+    },
+    announcement: latestAnnouncements,
+  });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Internal Server Error!" });
+  }
+}
 
 
 

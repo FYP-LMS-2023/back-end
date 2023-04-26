@@ -8,10 +8,12 @@ const threadSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    validator: function (v) {
-      return mongoose.Types.ObjectId.isValid(v);
+    validate: {
+      validator: function (v) {
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: (props) => `${props.value} is not a valid user id!`,
     },
-    message: (props) => `${props.value} is not a valid user id!`,
   },
   title: {
     type: String,
@@ -49,11 +51,18 @@ const threadSchema = new mongoose.Schema({
     required: true,
     default: ["General"],
   },
-  upvotes: {
-    type: Number,
-    default: 0,
-    min: 0,
-  },
+  upvotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
+  downvotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
 });
 
 const Thread = new mongoose.model("Thread", threadSchema);

@@ -10,6 +10,8 @@ router.post("/createClass", [auth, admin], asyncMiddleware(classService.createCl
 router.post("/assignTeacher", [auth, admin], asyncMiddleware(classService.assignTeacher));
 router.post("/assignTA", [auth, admin], asyncMiddleware(classService.assignTA));
 router.post("/enrollStudent", [auth, admin], asyncMiddleware(classService.enrollStudent));
+router.post("/getMyActiveClasses", [auth], asyncMiddleware(classService.getMyActiveClasses));
+router.post("/getClassDetailsShaheer", [auth], asyncMiddleware(classService.getClassDetailsShaheer));
 
 router.get("/getClassDetails/:classID", [auth], asyncMiddleware(classService.getClassDetails));
 

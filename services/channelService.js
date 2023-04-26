@@ -1,7 +1,7 @@
 const { Channel, validateChannel } = require("../models/Channel.js");
 const { Thread, validateThread } = require("../models/Thread.js");
 const { Comment, validateComment } = require("../models/Comment.js");
-
+const { User } = require("../models/User.js");
   
   exports.createChannel = async (req, res, next) => {
     var schema = {
@@ -37,6 +37,7 @@ const { Comment, validateComment } = require("../models/Comment.js");
     const channelCheck = await Channel.findById(req.body.channelID);
     //const user = await User.findById(req.body.postedBy);
     const user = await User.findOne({ fullName: req.body.postedBy });
+
   
     if (!user) {
       return res.status(400).send({ message: "User does not exist!" });
@@ -109,19 +110,27 @@ const { Comment, validateComment } = require("../models/Comment.js");
     var populatedThread = await thread.populate({
       path: "comments",
       populate: [
-        { path: "postedBy", select: "fullName ERP -_id" },
+        { path: "postedBy", select: "fullName ERP profilePic -_id" },
         {
           path: "replies",
-          populate: { path: "userID", select: "fullName ERP -_id" },
+          populate: { path: "userID", select: "fullName ERP profilePic -_id" },
         },
       ],
       options: { sort: { datePosted: -1 } },
-    });
+    },
+    );
   
     if (!populatedThread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
-    res.status(200).send(populatedThread);
+    const upvoteCount = populatedThread.upvotes.length;
+    const downvoteCount = populatedThread.downvotes.length;
+
+    res.status(200).send({
+      upvoteCount,
+      downvoteCount,
+      ...populatedThread.toObject(),
+    });
   };
   
   exports.createCommentOnThread = async (req, res, next) => {
@@ -224,6 +233,70 @@ const { Comment, validateComment } = require("../models/Comment.js");
       });
     }
   };
+
+  exports.upvoteThread = async (req, res, next) => {
+    if(!req.body.userID) {
+      return res.status(400).send({ message: "User ID is required!" });
+    }
+    if(!req.body.threadID) {
+      return res.status(400).send({ message: "Thread ID is required!" });
+    }
+    const user = await User.findById(req.body.userID);
+    const thread = await Thread.findById( req.body.threadID );
+
+    if (!user || !thread) {
+      return res.status(400).send({ message: "User or Thread does not exist!" });
+    }
+
+    const hasUpvoted = thread.upvotes.some((vote) => vote.equals(user._id));
+    const hasDownvoted = thread.downvotes.some((vote) => vote.equals(user._id));
+  
+
+    if (hasDownvoted) {
+      thread.downvotes.pull(user._id);
+      thread.upvotes.push(user._id);
+    } else if (hasUpvoted) {
+      thread.upvotes.pull(user._id);
+    } else {
+      //upvote the thread
+      thread.upvotes.push(user._id);
+    }
+    await thread.save();
+    res.status(200).send({ message: "Upvote successful!", thread });
+  
+  }
+
+  exports.downvoteThread = async (req, res, next) => {
+    if (!req.body.userID) {
+      return res.status(400).send({ message: "User ID is required!" });
+    }
+    if (!req.body.threadID) {
+      return res.status(400).send({ message: "Thread ID is required!" });
+    }
+
+    const user = await User.findById(req.body.userID);
+    const thread = await Thread.findById( req.body.threadID );
+
+    if (!user || !thread) {
+      return res.status(400).send({ message: "User or Thread does not exist!" });
+    }
+
+    const hasUpvoted = thread.upvotes.some((vote) => vote.equals(user._id));
+    const hasDownvoted = thread.downvotes.some((vote) => vote.equals(user._id));
+  
+
+    if (hasUpvoted) {
+      thread.upvotes.pull(user._id);
+      thread.downvotes.push(user._id);
+    } else if (hasDownvoted) {
+      thread.downvotes.pull(user._id);
+    } else {
+      //downvote the thread
+      thread.downvotes.push(user._id);
+    }
+    await thread.save();
+    res.status(200).send({ message: "Downvote successful!", thread });
+  }
   
   //DONT USE THIS ONE
   exports.createComment = async (req, res, next) => {
