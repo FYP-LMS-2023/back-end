@@ -17,6 +17,10 @@ exports.createAnnouncement = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     const classA = await Classes.findById(req.body.classID);
 
+    if(!classA.teacherIDs.includes(req.user._id)){
+      return res.status(400).send({ message: "You are not authorized to post announcements!" });
+    }
+
     if(!classA){
       return res.status(400).send({ message: "Class does not exist!" });
     }
@@ -68,7 +72,7 @@ exports.createAnnouncement = async (req, res, next) => {
     if(!announcement){
       return res.status(400).send({message: "Announcement does not exist!"});
     }
-    if(req.user_id.toString() !== announcement.postedBy.toString() || req.user.type !== 'Faculty'){
+    if(req.user._id.toString() !== announcement.postedBy.toString() || req.user.userType !== 'Faculty'){
       return res.status(400).send({message: "You are not authorized to update this announcement!"});
     }
     const result = await Announcement.findByIdAndUpdate(announcementID, req.body, {new: true});
@@ -85,10 +89,12 @@ exports.createAnnouncement = async (req, res, next) => {
   }
 
   exports.getAnnouncements = async (req, res, next) => {
-    if(!req.body.classID) {
+    const {id} = req.params;
+
+    if(!id) {
       return res.status(400).send({message: "Class ID is required!"});
     }
-    const classA = await Classes.findById(req.body.classID);
+    const classA = await Classes.findById(id);
     if(!classA){
       return res.status(400).send({message: "Class does not exist!"});
     }

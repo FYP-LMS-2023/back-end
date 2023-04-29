@@ -2,6 +2,8 @@ const { Attendance, validateAttendance } = require("../models/Attendance.js");
 const { Classes } = require("../models/Class.js");
 const moment = require("moment");
 const { User } = require("../models/User.js");
+const { Course } = require("../models/Course.js");
+const { Semester } = require("../models/Semester.js");
 
 
   exports.createAttendance = async (req, res, next) => {
@@ -116,17 +118,23 @@ const { User } = require("../models/User.js");
   };
 
   exports.getMyAttendanceOfClass = async (req, res, next) => {
-    const {studentID, classID} = req.body;
-    if (!classID) {
+    const { id } = req.params;
+
+    const studentID = req.user._id;
+    if (!id) {
       return res.status(400).send({ message: "Class ID is required!" });
     }
-    const resultClass = await Classes.findById(classID);
+    const resultClass = await Classes.findById(id);
     if (!resultClass) {
       return res.status(400).send({ message: "Class does not exist!" });
     }
     const student = await User.findById(studentID);
     if (!student) {
       return res.status(400).send({ message: "Student does not exist!" });
+    }
+
+    if(!resultClass.studentList.includes(studentID)){
+      return res.status(400).send({ message: "Student is not enrolled in this class!" });
     }
 
     const attendance = await Attendance.findById(resultClass.Attendance[0]);
@@ -146,6 +154,60 @@ const { User } = require("../models/User.js");
       absentDays,
       absentCount: absentDays.length,
     });
+  }
+
+  exports.getMyAattendanceOfAllActiveClasses = async (req, res, next) => {
+    const studentID = req.user._id;
+    const currentDate = new Date();
+    const activeSemester = await Semester.findOne({
+      //semesterStartDate: { $lte: currentDate },
+      semesterEndDate: { $gte: currentDate },
+    })
+    if(!activeSemester){
+      return res.status(400).send({message: "No active semester!"});
+    }
+
+    const enrolledClasses = await Classes.find({
+      studentList: studentID,
+    });
+
+    const activeClasses = enrolledClasses.filter((classObj) => {
+      return classObj.semesterID.toString() === activeSemester._id.toString();
+    })
+
+    const attendanceRecords = await Promise.all(
+      activeClasses.map(async (classObj)=> {
+        
+        const course = await Course.findOne({ classes: classObj._id });
+        const attendance = await Attendance.findById(classObj.Attendance[0]);
+
+        if(!attendance){
+          return null;
+        }
+
+        const absentDays = attendance.sessions.filter((session) => {
+          const studentAttendance = session.attendance.find(
+            (entry) => entry.studentID.toString() === studentID.toString()
+          );
+          return studentAttendance && !studentAttendance.present;
+        })
+        .map((session) => moment(session.date).format("DD/MM/YYYY"));
+
+        return {
+          courseName: course.courseName,
+          courseCode: course.courseCode,
+          absentDays,
+          absentCount: absentDays.length,
+        }
+      })
+    )
+
+    const filteredAttendanceRecords = attendanceRecords.filter((record) => record !== null);
+
+    res.status(200).send({
+      message: "Attendance fetched successfully of Absent Days",
+      attendanceRecords: filteredAttendanceRecords,
+    }) 
   }
 
   exports.getAttendanceBySession = async (req, res, next) => {
@@ -221,6 +283,12 @@ const { User } = require("../models/User.js");
     if (!student) {
       return res.status(400).send({ message: "Student does not exist!" });
     }
+    const faculty = await User.findById(req.user._id);
+    //check if the array classObj.teacherIDs has faculty._id
+    if (!classObj.teacherIDs.includes(faculty._id)) {
+      return res.status(400).send({ message: "You are not authorized to toggle attendance!" });
+    }
+
     let session;
     if (date) {
       session = attendance.sessions.find(

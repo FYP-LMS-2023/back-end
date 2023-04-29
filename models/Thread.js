@@ -74,6 +74,8 @@ function validateThread(thread) {
     description: Joi.string().min(5).max(255).required(),
     comments: Joi.array().items(Joi.objectId()).required(),
     tags: Joi.array().items(Joi.string().valid("General", "Homework", "Project", "Exam", "Question", "Other")).default(["General"]).required(),
+    upvotes: Joi.array().items(Joi.objectId()),
+    downvotes: Joi.array().items(Joi.objectId()),
   });
   return schema.validate(thread);
 }

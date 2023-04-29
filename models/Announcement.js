@@ -53,6 +53,7 @@ function validateAnnouncementUpdate(announcement) {
   var schema = Joi.object({
     title: Joi.string().min(5).max(50).optional(),
     description: Joi.string().min(5).max(255).optional(),
+    announcementType: Joi.string().valid('general', 'course', 'quiz', 'assignment', 'exam').optional(),
   }).min(1); // require at least one field to be present
   return schema.validate(announcement)
 }

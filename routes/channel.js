@@ -5,7 +5,10 @@ const asyncMiddleware = require("../middlewares/asyncMiddleware");
 const auth = require("../middlewares/auth");
 const faculty = require("../middlewares/faculty");
 
+//deprecated
 router.post("/createChannel", auth, asyncMiddleware(channelService.createChannel));
+
+
 router.post("/createThread", auth, asyncMiddleware(channelService.createThread));
 router.post("/createComment", auth, asyncMiddleware(channelService.createComment));
 router.get("/getChannel/:id", auth, asyncMiddleware(channelService.getChannel));

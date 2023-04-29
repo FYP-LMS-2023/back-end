@@ -12,6 +12,7 @@ router.post("/assignTA", [auth, admin], asyncMiddleware(classService.assignTA));
 router.post("/enrollStudent", [auth, admin], asyncMiddleware(classService.enrollStudent));
 router.post("/getMyActiveClasses", [auth], asyncMiddleware(classService.getMyActiveClasses));
 router.post("/getClassDetailsShaheer", [auth], asyncMiddleware(classService.getClassDetailsShaheer));
+router.post("/uploadSyllabus", [auth, faculty], asyncMiddleware(classService.uploadSyllabus));
 
 router.get("/getClassDetails/:classID", [auth], asyncMiddleware(classService.getClassDetails));
 

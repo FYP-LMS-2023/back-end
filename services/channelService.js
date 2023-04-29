@@ -2,6 +2,7 @@ const { Channel, validateChannel } = require("../models/Channel.js");
 const { Thread, validateThread } = require("../models/Thread.js");
 const { Comment, validateComment } = require("../models/Comment.js");
 const { User } = require("../models/User.js");
+const { Classes } = require("../models/Class.js");
   
   exports.createChannel = async (req, res, next) => {
     var schema = {
@@ -36,8 +37,7 @@ const { User } = require("../models/User.js");
   
     const channelCheck = await Channel.findById(req.body.channelID);
     //const user = await User.findById(req.body.postedBy);
-    const user = await User.findOne({ fullName: req.body.postedBy });
-
+    const user = await User.findById(req.user._id);
   
     if (!user) {
       return res.status(400).send({ message: "User does not exist!" });
@@ -46,13 +46,25 @@ const { User } = require("../models/User.js");
     if (!channelCheck) {
       return res.status(400).send({ message: "Channel does not exist!" });
     }
+
+    const classA = await Classes.findOne({ Channel : req.body.channelID });
+    if (!classA) {
+      return res.status(400).send({ message: "Class does not exist!" });
+    }
+
+    if(!classA.studentList.includes(req.user._id) && !classA.TA.includes(req.user._id) && !classA.teacherIDs.includes(req.user._id)){
+      return res.status(400).send({ message: "You are not a part of this class!" });
+    }
+
   
     var schema = {
       postedBy: user.id,
       title: req.body.title,
       description: req.body.description,
-      comments: req.body.comments,
+      comments: [],
       tags: req.body.tags,
+      upvotes: [],
+      downvotes: [],
     };
   
     const { error } = validateThread(schema, res);
@@ -62,7 +74,11 @@ const { User } = require("../models/User.js");
     }
   
     let thread = new Thread(schema);
-    const result = await thread.save();
+    await thread.save();
+    const result = await Thread.findById(thread.id).populate({
+      path: "postedBy",
+      select: "fullName ERP -_id",
+    });
   
     if (result) {
       channelCheck.threads.push(result.id);
@@ -80,9 +96,24 @@ const { User } = require("../models/User.js");
   };
   
   exports.getChannel = async (req, res, next) => {
+    const user = await User.findById(req.user._id);
+    if(!user){
+      return res.status(400).send({ message: "User does not exist!" });
+    }
+    
+
+    
     const channel = await Channel.findById(req.params.id);
     if (!channel) {
       return res.status(400).send({ message: "Channel does not exist!" });
+    }
+    const classA = await Classes.findOne({ Channel : channel._id });
+    if (!classA) {
+      return res.status(400).send({ message: "Class does not exist!" });
+    }
+
+    if(!classA.studentList.includes(req.user._id) && !classA.TA.includes(req.user._id) && !classA.teacherIDs.includes(req.user._id)){
+      return res.status(400).send({ message: "You are not a part of this class!" });
     }
   
     var populatedChannel = await channel.populate({
@@ -102,12 +133,16 @@ const { User } = require("../models/User.js");
   };
   
   exports.getThread = async (req, res, next) => {
-    const thread = await Thread.findById(req.params.id);
+    const {id} = req.params;
+
+    const thread = await Thread.findById(id);
+
     if (!thread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
   
-    var populatedThread = await thread.populate({
+    var populatedThread =  await Thread.findById(id)
+    .populate({
       path: "comments",
       populate: [
         { path: "postedBy", select: "fullName ERP profilePic -_id" },
@@ -117,8 +152,7 @@ const { User } = require("../models/User.js");
         },
       ],
       options: { sort: { datePosted: -1 } },
-    },
-    );
+    })
   
     if (!populatedThread) {
       return res.status(400).send({ message: "Thread does not exist!" });
@@ -137,20 +171,22 @@ const { User } = require("../models/User.js");
     if (!req.body.threadID) {
       return res.status(400).send({ message: "Thread ID is required!" });
     }
-  
-    if (!req.body.postedBy) {
-      return res.status(400).send({ message: "Posted By is required!" });
-    }
-  
     const thread = await Thread.findById(req.body.threadID);
   
     if (!thread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
-  
-    const user = await User.findOne({ fullName: req.body.postedBy });
-    if (!user) {
+
+    const user = await User.findById(req.user._id);
+    if(!user){
       return res.status(400).send({ message: "User does not exist!" });
+    }
+
+    const channel = await Channel.findOne({ threads : req.body.threadID });
+    const classA = await Classes.findOne({ Channel : channel._id });
+
+    if(!classA.studentList.includes(req.user._id) && !classA.TA.includes(req.user._id) && !classA.teacherIDs.includes(req.user._id)){
+      return res.status(400).send({ message: "You are not a part of this class!" });
     }
   
     var schema = {
@@ -196,9 +232,11 @@ const { User } = require("../models/User.js");
     if (!req.body.commentID) {
       return res.status(400).send({ message: "Comment ID is required!" });
     }
-    if (!req.body.postedBy) {
-      return res.status(400).send({ message: "Posted By is required!" });
+    const user = await User.findById(req.user._id);
+    if(!user){
+      return res.status(400).send({ message: "User does not exist!" });
     }
+
     if (!req.body.repliedComment) {
       return res.status(400).send({ message: "Comment for reply is required!" });
     }
@@ -207,14 +245,6 @@ const { User } = require("../models/User.js");
     if (!comment) {
       return res.status(400).send({ message: "Comment does not exist!" });
     }
-  
-    var user = await User.findOne({ fullName: req.body.postedBy });
-  
-    if (!user) {
-      return res.status(400).send({ message: "User does not exist!" });
-    }
-  
-    //console.log(user);
   
     comment.replies.push({
       userID: user._id,
@@ -235,13 +265,11 @@ const { User } = require("../models/User.js");
   };
 
   exports.upvoteThread = async (req, res, next) => {
-    if(!req.body.userID) {
-      return res.status(400).send({ message: "User ID is required!" });
-    }
+
     if(!req.body.threadID) {
       return res.status(400).send({ message: "Thread ID is required!" });
     }
-    const user = await User.findById(req.body.userID);
+    const user = await User.findById(req.user._id);
     const thread = await Thread.findById( req.body.threadID );
 
     if (!user || !thread) {

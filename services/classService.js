@@ -92,6 +92,7 @@ exports.createClass = async (req, res, next) => {
   };
 
   exports.assignTeacher = async (req, res, next) => {
+    
     if(!req.body.classID){
       return res.status(400).send({message: "Class ID is required!"});
     }
@@ -205,6 +206,15 @@ exports.createClass = async (req, res, next) => {
       return res.status(400).send({ message: "User is not a student!" });
     }
 
+    const admin = await User.findById(req.user._id);
+    if (!admin) {
+      return res.status(400).send({ message: "Admin does not exist!" });
+    }
+
+    if(admin.userType !== "Admin"){
+      return res.status(400).send({message: "User is not an admin!"});
+    }
+
     const attendance = await Attendance.findById(classObj.Attendance[0]);
     if (!attendance) {
       return res.status(400).send({ message: "Attendance does not exist!" });
@@ -232,7 +242,7 @@ exports.createClass = async (req, res, next) => {
   }
 
   exports.uploadSyllabus = async (req, res, next) => {
-    const {classID} = req.body.classID;
+    const classID = req.body.classID;
     if(!classID){
       return res.status(400).send({message: "Class ID is required!"});
     }
@@ -243,6 +253,11 @@ exports.createClass = async (req, res, next) => {
     if(!req.body.syllabus) {
       return res.status(400).send({message: "Syllabus is required!"});
     }
+    if(!classObj.teacherIDs.includes(req.user._id)){
+      return res.status(400).send({message: "User is not a teacher of this class!"});
+    }
+
+
     classObj.syllabus = req.body.syllabus;
     await classObj.save();
     res.status(200).send({
