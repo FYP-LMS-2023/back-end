@@ -13,17 +13,10 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // classId: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "Class",
-  //   required: true,
-  //   validate: {
-  //     validator: function (v) {
-  //       return mongoose.Types.ObjectId.isValid(v);
-  //     },
-  //   },
-  //   message: (props) => `${props.value} is not a valid class id!`,
-  // },
+  queryTitle: {
+    type: String,
+    default: " "
+  },
   datePosted: {
     type: Date,
     required: true,
@@ -42,6 +35,16 @@ const notificationSchema = new mongoose.Schema({
   link: {
     type: String,
     default: ""
+  },
+  classID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Classes",
+    validate: {
+      validator: function (v) {
+        return mongoose.Types.ObjectId.isValid(v);
+      },
+      message: (props) => `${props.value} is not a valid class id!`,
+    },
   }
 });
 
@@ -68,7 +71,6 @@ async function notifyStudentsAnnouncement(classID, announcement) {
   const classObj = await Classes.findById(classID).populate("studentList");
 
   const newNotification = new Notification({
-    title: announcement.title,
     description: announcement.description,
     classId: classID,
     notificationType: "announcement",
@@ -83,8 +85,34 @@ async function notifyStudentsAnnouncement(classID, announcement) {
   }
 }
 
+
+async function createNotificationAnnouncement(classID, announcement) {
+  const classObj = await Classes.findById(classID).populate("studentList");
+
+  const truncatedDescription = announcement.description.length > 50
+    ? announcement.description.substring(0, 47) + "..."
+    : announcement.description;
+
+  const newNotification = new Notification({
+    title: `New Announcement posted for ${classObj.courseCode} - ${classObj.courseName}`,
+    queryTitle: announcement.title,
+    description: truncatedDescription,
+    notificationType: "announcement",
+    classID: classID,
+    link: `/class/${classID}/announcement/${announcement._id}`
+  });
+
+  await newNotification.save();
+
+  for (const student of classObj.studentList) {
+    student.notifications.push(newNotification);
+    await student.save();
+  }
+}
+
 module.exports = {
   Notification,
   validateNotification,
-  notifyStudentsAnnouncement
+  notifyStudentsAnnouncement,
+  createNotificationAnnouncement
 }

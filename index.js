@@ -22,8 +22,12 @@ const submissionRouter = require("./routes/submission");
 const generalRouter = require("./routes/general");
 
 const connectDB = require("./config/db");
+const wss = require("./websocket/websocketServer");
+const http = require("http");
+
 
 const app = express();
+const server = http.createServer(app);
 
 if (!process.env.jwtPrivateKey) {
   console.error("FATAL ERROR: jwtPrivateKey is not defined");
@@ -64,7 +68,22 @@ app.use("/general", generalRouter);
 
 app.use(error);
 
+server.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (socket) => {
+    wss.emit("connection", socket, request);
+  });
+});
+
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
+
+server.listen(PORT, () => {
   console.log(`Server is running on ${PORT}...`);
 });
+
+
+// app.listen(PORT, () => {
+//   console.log(`Server is running on ${PORT}...`);
+// });
+
+
+

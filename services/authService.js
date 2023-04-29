@@ -162,7 +162,10 @@ exports.login = async (req, res, next) => {
 };
 
 exports.getProfile = async (req, res, next) => {
-  const user = await User.findById(req.user._id).select("-password");
+  //const user = await User.findById(req.user._id).select("-password");
+  const user = await User.findById(req.user._id).select("-password").populate
+  ("Program").select(" -id -electives -cores -faculty")
+  .populate("notifications").select(" -_id")
   if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
   res.status(200).send({ user });
 };

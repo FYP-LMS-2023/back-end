@@ -3,7 +3,7 @@ const { Announcement, validateAnnouncement, validateAnnouncementUpdate } = requi
 const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
 const { ObjectId } = require("mongoose").Types;
-
+const { Notification, createNotificationAnnouncement } = require("../models/Notification");
 
 exports.createAnnouncement = async (req, res, next) => {
     var schema = {
@@ -47,7 +47,8 @@ exports.createAnnouncement = async (req, res, next) => {
     const result = await announcement.save();
     classA.Announcement.push(announcement._id);
     await classA.save();
-  
+    await createNotificationAnnouncement(req.body.classID, result);
+
     var populatedResult = await result.populate("postedBy", "fullName ERP -_id");
   
     if (populatedResult) {
