@@ -7,14 +7,13 @@ const Test = require("../models/test");
 
 exports.test = async (req, res, next) => {
   //get base64 db
-  const result = await Test.find();
+  // const result = await Test.find();
   // console.log(result[0].file.valueOf());
   // var base64String = btoa(
   //   String.fromCharCode.apply(null, new Uint8Array(result[0].file))
   // );
 
-  
-  return res.json({ reuslt: result[0].file });
+  return res.json({ message: "suck cock" });
 
   //upload base64 to db
 
@@ -145,8 +144,11 @@ exports.login = async (req, res, next) => {
   var lowerCaseEmail = req.body.email.toLowerCase();
   let user = await User.findOne({ email: lowerCaseEmail });
   if (!user)
-    return res.status(400).send({ message: "Invalid email or password!" });
-
+    return res.status(401).send({ message: "Invalid email or password!" });
+  let isAdmin = false;
+  if (user.userType === "Admin") {
+    isAdmin = true;
+  }
   if (user.deleteFlag)
     return res
       .status(403)
@@ -154,18 +156,25 @@ exports.login = async (req, res, next) => {
 
   const validPassword = await bcrypt.compare(req.body.password, user.password);
   if (!validPassword)
-    return res.status(400).send({ message: "Invalid email or password!" });
+    return res.status(401).send({ message: "Invalid email or password!" });
 
   const token = user.generateAuthToken();
 
-  res.send({ message: "User logged in successfully!", token: token });
+  res.send({
+    message: "User logged in successfully!",
+    token: token,
+    isAdmin: isAdmin,
+  });
 };
 
 exports.getProfile = async (req, res, next) => {
   //const user = await User.findById(req.user._id).select("-password");
-  const user = await User.findById(req.user._id).select("-password").populate
-  ("Program").select(" -id -electives -cores -faculty")
-  .populate("notifications").select(" -_id")
+  const user = await User.findById(req.user._id)
+    .select("-password")
+    .populate("Program")
+    .select(" -id -electives -cores -faculty")
+    .populate("notifications")
+    .select(" -_id");
   if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
   res.status(200).send({ user });
 };
