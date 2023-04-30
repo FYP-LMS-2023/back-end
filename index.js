@@ -26,7 +26,6 @@ const connectDB = require("./config/db");
 const wss = require("./websocket/websocketServer");
 const http = require("http");
 
-
 const app = express();
 const server = http.createServer(app);
 
@@ -43,10 +42,8 @@ if (!process.env.PORT) {
 connectDB();
 app.use(cors());
 
-if (app.get("env") === "development") {
-  app.use(morgan());
-  console.log("Morgan logging enabled...");
-}
+app.use(morgan());
+console.log("Morgan logging enabled...");
 
 app.use(bodyParser.urlencoded({ extended: true, limit: "16mb" }));
 app.use(bodyParser.json({ limit: "16mb" }));
@@ -82,10 +79,6 @@ server.listen(PORT, () => {
   console.log(`Server is running on ${PORT}...`);
 });
 
-
 // app.listen(PORT, () => {
 //   console.log(`Server is running on ${PORT}...`);
 // });
-
-
-

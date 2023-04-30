@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 require("dotenv").config();
+Joi.objectId = require("joi-objectid")(Joi);
 
 const assignmentSchema = new mongoose.Schema({
   uploadDate: {
@@ -45,26 +46,23 @@ const assignmentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  attachments: [
-    {
-      filename: {
-        type: String,
-        required: true,
-      },
-      file: {
-        type: Buffer,
-        required: true,
-      },
-      fileSize: {
-        type: Number,
-        required: true,
-      },
-      fileType: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
+  filename: {
+    type: String,
+    required: true,
+  },
+  filePath: {
+    type: String,
+    required: true,
+  },
+  fileSize: {
+    type: Number,
+    required: true,
+  },
+  fileType: {
+    type: String,
+    required: true,
+  },
+
   submissions: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -109,21 +107,19 @@ function validateAssignment(assignment) {
     status: Joi.string().valid("open", "closed").required(),
     resubmissionDeadline: Joi.date(),
     description: Joi.string().min(5).max(255).required(),
-    attachments: Joi.array().items(
-      Joi.object({
-        filename: Joi.string().min(5).max(255).required(),
-        file: Joi.binary().required(),
-        fileSize: Joi.number().min(0).required(),
-        fileType: Joi.string().min(5).max(255).required(),
-      })
-    ),
+
+    filename: Joi.string().min(5).max(255).required(),
+    filePath: Joi.string().required(),
+    fileSize: Joi.number().min(0).required(),
+    fileType: Joi.string().min(5).max(255).required(),
+
     submissions: Joi.array().items(Joi.objectId()),
     marks: Joi.number().min(0).required(),
-    });
+  });
   return schema.validate(assignment);
 }
 
 module.exports = {
   Assignment,
   validateAssignment,
-}
+};
