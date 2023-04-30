@@ -55,7 +55,7 @@ function validateNotification(notification) {
   var schema = Joi.object({
     title: Joi.string().min(5).max(50).required(),
     description: Joi.string().min(5).max(255).required(),
-    classId: Joi.objectId().required(),
+    //classId: Joi.objectId().required(),
     datePosted: Joi.date(),
     notificationType: Joi.string()
       .valid("announcement", "assignment", "attendance", "quiz", "exam", "other")
@@ -68,23 +68,23 @@ function validateNotification(notification) {
   return schema.validate(notification);
 }
 
-async function notifyStudentsAnnouncement(classID, announcement) {
-  const classObj = await Classes.findById(classID).populate("studentList");
+// async function notifyStudentsAnnouncement(classID, announcement) {
+//   const classObj = await Classes.findById(classID).populate("studentList");
 
-  const newNotification = new Notification({
-    description: announcement.description,
-    classId: classID,
-    notificationType: "announcement",
-    link: `/class/${classID}/announcement/${announcement._id}`
-  });
+//   const newNotification = new Notification({
+//     description: announcement.description,
+//     //classId: classID,
+//     notificationType: "announcement",
+//     link: `/class/${classID}/announcement/${announcement._id}`
+//   });
 
-  await newNotification.save();
+//   await newNotification.save();
 
-  for ( const student of classObj.studentList) {
-    student.notifications.push(newNotification);
-    await student.save();
-  }
-}
+//   for ( const student of classObj.studentList) {
+//     student.notifications.push(newNotification);
+//     await student.save();
+//   }
+// }
 
 
 async function createNotificationAnnouncement(classID, announcement, courseCode, courseName) {
@@ -110,7 +110,7 @@ async function createNotificationAnnouncement(classID, announcement, courseCode,
   }
 }
 
-async function createNotificationThreadReply(thread, comment) {
+async function createNotificationThreadReply(thread, comment, fullName) {
   const threadAuthor = await User.findById(thread.postedBy);
   const truncatedComment = comment.comment.length > 50
     ? comment.comment.substring(0, 47) + "..."
@@ -118,7 +118,7 @@ async function createNotificationThreadReply(thread, comment) {
 
   const newNotification = new Notification({
     title: `New reply to your thread: ${thread.title}`,
-    queryTitle: `${thread.title} - Reply from ${comment.postedBy.fullName}`,
+    queryTitle: `${thread.title} - comment from ${fullName}`,
     description: truncatedComment,
     notificationType: "thread",
     link: `/thread/${thread._id}/comment/${comment._id}`
@@ -151,7 +151,7 @@ async function createNotificationCommentReply(thread, comment, reply, replyAutho
 module.exports = {
   Notification,
   validateNotification,
-  notifyStudentsAnnouncement,
+  //notifyStudentsAnnouncement,
   createNotificationAnnouncement,
   createNotificationThreadReply,
   createNotificationCommentReply

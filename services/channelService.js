@@ -204,12 +204,14 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
   
     let comment = new Comment(schema);
     const result = await comment.save();
+
+    const fullName = user.fullName;
   
     if (result) {
       thread.comments.push(result.id);
       await thread.save();
       
-      await createNotificationThreadReply(thread, result);
+      await createNotificationThreadReply(thread, result, fullName);
 
       var populatedResult = await result.populate(
         "postedBy",
@@ -239,6 +241,7 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
     if(!user){
       return res.status(400).send({ message: "User does not exist!" });
     }
+    const fullName = user.fullName;
 
     if (!req.body.repliedComment) {
       return res.status(400).send({ message: "Comment for reply is required!" });
@@ -262,7 +265,7 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
     }
 
     const newReply = result.replies[result.replies.length - 1];
-    await createNotificationCommentReply(thread, comment, newReply, user.fullName);
+    await createNotificationCommentReply(thread, comment, newReply, fullName);
     
     if (result) {
       res.status(200).send({

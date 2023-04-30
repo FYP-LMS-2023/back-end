@@ -169,12 +169,29 @@ exports.login = async (req, res, next) => {
 
 exports.getProfile = async (req, res, next) => {
   //const user = await User.findById(req.user._id).select("-password");
-  const user = await User.findById(req.user._id)
-    .select("-password")
-    .populate("Program")
-    .select(" -id -electives -cores -faculty")
-    .populate("notifications")
-    .select(" -_id");
+  const user = await User.findById(req.user._id);
   if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
   res.status(200).send({ user });
+};
+
+exports.getPopulatedProfile = async (req, res, next) => {
+
+    const {id} = req.params;
+  
+    const user = await User.findById(id)
+      .populate({
+        path: "courses",
+        select: "courseCode courseName",
+      })
+      .populate({
+        path: "Program",
+        select: "name code description",
+      });
+    
+    
+    if (!user) {
+      return res.status(400).send({ message: "User doesn't exist anymore!" });
+    }
+    res.status(200).send({ user });
+  
 };
