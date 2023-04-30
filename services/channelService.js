@@ -3,6 +3,7 @@ const { Thread, validateThread } = require("../models/Thread.js");
 const { Comment, validateComment } = require("../models/Comment.js");
 const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
+const { createNotificationThreadReply, createNotificationCommentReply } = require("../models/Notification.js");
   
   exports.createChannel = async (req, res, next) => {
     var schema = {
@@ -207,7 +208,9 @@ const { Classes } = require("../models/Class.js");
     if (result) {
       thread.comments.push(result.id);
       await thread.save();
-  
+      
+      await createNotificationThreadReply(thread, result);
+
       var populatedResult = await result.populate(
         "postedBy",
         "fullName ERP -_id"
@@ -252,6 +255,15 @@ const { Classes } = require("../models/Class.js");
     });
   
     const result = await comment.save();
+
+    const thread = await Thread.findOne({comments: {$in: [req.body.commentID]}});
+    if (!thread) {
+      return res.status(400).send({ message: "Thread does not exist!" });
+    }
+
+    const newReply = result.replies[result.replies.length - 1];
+    await createNotificationCommentReply(thread, comment, newReply, user.fullName);
+    
     if (result) {
       res.status(200).send({
         message: "Reply created successfully!",

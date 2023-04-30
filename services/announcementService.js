@@ -4,6 +4,7 @@ const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
 const { ObjectId } = require("mongoose").Types;
 const { Notification, createNotificationAnnouncement } = require("../models/Notification");
+const { Course } = require("../models/Course.js");
 
 exports.createAnnouncement = async (req, res, next) => {
     var schema = {
@@ -47,7 +48,14 @@ exports.createAnnouncement = async (req, res, next) => {
     const result = await announcement.save();
     classA.Announcement.push(announcement._id);
     await classA.save();
-    await createNotificationAnnouncement(req.body.classID, result);
+
+    const courseDetails = await Course.findOne({ classes: req.body.classID }).select('courseName courseCode ');
+    if (!courseDetails) {
+      return res.status(400).send({ message: "Course does not exist!" });
+    }
+    console.log(courseDetails.courseCode, courseDetails.courseName)
+    
+    await createNotificationAnnouncement(req.body.classID, result, courseDetails.courseCode, courseDetails.courseName );
 
     var populatedResult = await result.populate("postedBy", "fullName ERP -_id");
   

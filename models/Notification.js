@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Joi = require("joi");
 require("dotenv").config();
 const { Classes } = require("./Class");
+const {User} = require("./User");
 
 
 const notificationSchema = new mongoose.Schema({
@@ -25,7 +26,7 @@ const notificationSchema = new mongoose.Schema({
   notificationType: {
     type: String,
     required: true,
-    enum: ["announcement", "assignment", "attendance", "quiz", "exam", "other"],
+    enum: ["announcement", "assignment", "attendance", "quiz", "exam", "other", "thread"],
     default: "announcement",
   },
   read: {
@@ -36,16 +37,16 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
-  classID: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Classes",
-    validate: {
-      validator: function (v) {
-        return mongoose.Types.ObjectId.isValid(v);
-      },
-      message: (props) => `${props.value} is not a valid class id!`,
-    },
-  }
+  // classID: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Classes",
+  //   validate: {
+  //     validator: function (v) {
+  //       return mongoose.Types.ObjectId.isValid(v);
+  //     },
+  //     message: (props) => `${props.value} is not a valid class id!`,
+  //   },
+  // },
 });
 
 const Notification = mongoose.model("Notification", notificationSchema);
@@ -86,7 +87,7 @@ async function notifyStudentsAnnouncement(classID, announcement) {
 }
 
 
-async function createNotificationAnnouncement(classID, announcement) {
+async function createNotificationAnnouncement(classID, announcement, courseCode, courseName) {
   const classObj = await Classes.findById(classID).populate("studentList");
 
   const truncatedDescription = announcement.description.length > 50
@@ -94,11 +95,10 @@ async function createNotificationAnnouncement(classID, announcement) {
     : announcement.description;
 
   const newNotification = new Notification({
-    title: `New Announcement posted for ${classObj.courseCode} - ${classObj.courseName}`,
+    title: `New Announcement posted for ${courseCode} - ${courseName}`,
     queryTitle: announcement.title,
     description: truncatedDescription,
     notificationType: "announcement",
-    classID: classID,
     link: `/class/${classID}/announcement/${announcement._id}`
   });
 
@@ -110,9 +110,49 @@ async function createNotificationAnnouncement(classID, announcement) {
   }
 }
 
+async function createNotificationThreadReply(thread, comment) {
+  const threadAuthor = await User.findById(thread.postedBy);
+  const truncatedComment = comment.comment.length > 50
+    ? comment.comment.substring(0, 47) + "..."
+    : comment.comment;
+
+  const newNotification = new Notification({
+    title: `New reply to your thread: ${thread.title}`,
+    queryTitle: `${thread.title} - Reply from ${comment.postedBy.fullName}`,
+    description: truncatedComment,
+    notificationType: "thread",
+    link: `/thread/${thread._id}/comment/${comment._id}`
+  });
+
+  await newNotification.save();
+  threadAuthor.notifications.push(newNotification);
+  await threadAuthor.save();
+}
+
+async function createNotificationCommentReply(thread, comment, reply, replyAuthorFullName) {
+  const commentAuthor = await User.findById(comment.postedBy);
+  const truncatedReply = reply.repliedComment.length > 50
+    ? reply.repliedComment.substring(0, 47) + "..."
+    : reply.repliedComment;
+
+  const newNotification = new Notification({
+    title: `New reply to your comment in thread ${thread.title}`,
+    queryTitle: `${thread.title} --: Reply from ${replyAuthorFullName}`,
+    description: truncatedReply,
+    notificationType: "thread",
+    link: `/thread/${thread._id}/comment/${comment._id}/reply/${reply._id}`
+  });
+
+  await newNotification.save();
+  commentAuthor.notifications.push(newNotification);
+  await commentAuthor.save();
+}
+
 module.exports = {
   Notification,
   validateNotification,
   notifyStudentsAnnouncement,
-  createNotificationAnnouncement
+  createNotificationAnnouncement,
+  createNotificationThreadReply,
+  createNotificationCommentReply
 }

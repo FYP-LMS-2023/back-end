@@ -20,6 +20,7 @@ const questionRouter = require("./routes/question");
 const answerRouter = require("./routes/answer");
 const submissionRouter = require("./routes/submission");
 const generalRouter = require("./routes/general");
+const notificationRouter = require("./routes/notification");
 
 const connectDB = require("./config/db");
 const wss = require("./websocket/websocketServer");
@@ -65,6 +66,7 @@ app.use("/quiz", [quizRouter, submissionRouter]);
 app.use("/question", questionRouter);
 app.use("/answer", answerRouter);
 app.use("/general", generalRouter);
+app.use("/notification", notificationRouter);
 
 app.use(error);
 
