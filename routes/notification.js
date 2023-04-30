@@ -7,7 +7,7 @@ const faculty = require("../middlewares/faculty");
 
 
 router.get("/getUnreadNotifications", auth, asyncMiddleware(notificationService.getUnreadNotifications));
-router.patch("/markNotificationAsRead/:id", auth, asyncMiddleware(notificationService.markNotificationAsRead));
+router.patch("/toggleNotificationRead/:id", auth, asyncMiddleware(notificationService.toggleNotificationRead));
 router.get("/getReadNotifications", auth, asyncMiddleware(notificationService.getReadNotifications));
 
 module.exports = router;

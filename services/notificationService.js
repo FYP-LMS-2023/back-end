@@ -101,13 +101,23 @@ exports.getReadNotifications = async (req, res, next) => {
   });
 };
 
-exports.markNotificationAsRead = async (req, res, next) => {
+exports.toggleNotificationRead = async (req, res, next) => {
   const { id } = req.params;
 
-  const notification = await Notification.findByIdAndUpdate(
-    { _id: id },
-    { read: false }
-  );
+  const testNot = await Notification.findById(id);
+  if(!testNot) return res.status(404).send("Notification not found");
+
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(400).send({ message: "User does not exist!" });
+  }
+
+  if(!user.notifications.includes(id)) return res.status(404).send("Notification not found");
+
+  const notification = await Notification.findById(id);
+
+  notification.read = !notification.read;
+  await notification.save();
 
   if (!notification) {
     return res.status(404).send("Notification not found and not updated");

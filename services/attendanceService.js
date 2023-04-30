@@ -236,7 +236,7 @@ const { Semester } = require("../models/Semester.js");
     else {
       session = attendance.sessions[sessionNumber-1];
     }
-    console.log(session)
+    //console.log(session)
 
 
     if (!session) {
