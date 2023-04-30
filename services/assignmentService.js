@@ -1,8 +1,9 @@
 const { Assignment, validateAssignment } = require("../models/Assignment");
+const { Classes, validateClass } = require("../models/Class");
 
 exports.createAssignment = async (req, res, next) => {
-//   console.log(req.body);
-//   console.log(req.file);
+  //   console.log(req.body);
+  //   console.log(req.file);
   const assignmentSchema = {
     uploadDate: Date.now(),
     dueDate: req.body?.dueDate,
@@ -25,6 +26,9 @@ exports.createAssignment = async (req, res, next) => {
   const { error } = validateAssignment(assignmentSchema);
   if (error)
     return res.status(400).send({ message: `${error.details[0].message}` });
+
+  const classTest = await Classes.findbyId(assignmentSchema.classId);
+  if (!classTest) return res.status(400).send("Invalid Class.");
 
   let assignment = new Assignment(assignmentSchema);
 
