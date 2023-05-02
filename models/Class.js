@@ -111,7 +111,7 @@ const classSchema = new mongoose.Schema({
   Assignments: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Assignment",
+      ref: "AssignmentTwo",
       //required: true,
       validate: {
         validator: function (v) {
