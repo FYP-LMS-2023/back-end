@@ -48,7 +48,14 @@ const uploadAssignment = multer({
 
 const uploadSubmission = multer({
   storage: storageSubmission,
-
+  limits: {
+    fileSize: 1024 * 1024 * 20, // 20 MB
+    fieledSize: 1024,
+  },
+  fileFilter: fileFilter
 })
 
-module.exports = uploadAssignment;
+module.exports = {
+  uploadAssignment,
+  uploadSubmission
+}
