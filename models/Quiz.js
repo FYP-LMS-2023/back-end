@@ -45,7 +45,7 @@ const quizSchema = new mongoose.Schema({
   submissions: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Submission",
+      ref: "QuizSubmission",
       required: true,
       validate: {
         validator: function (v) {
