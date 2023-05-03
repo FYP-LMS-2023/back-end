@@ -162,7 +162,15 @@ exports.submitAssignment = async function (req, res) {
             format: file.format
         }))
 
-        const existingSubmission = await AssignmentSubmission.findOne({ studentID: req.user._id, assignmentID: id });
+        let existingSubmission = null;
+
+        for (const submissionId of assignment.submissions) {
+            const submission = await AssignmentSubmission.findById(submissionId).select("studentID");
+            if (submission.studentID.toString() === req.user._id.toString()) {
+                existingSubmission = submission;
+                break;
+            }
+        }
 
         if (existingSubmission) {
             // Update the existing submission
