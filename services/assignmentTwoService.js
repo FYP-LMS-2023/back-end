@@ -142,6 +142,22 @@ exports.submitAssignment = async function (req, res) {
         return res.status(403).send({ message: "Access denied! => Assignment deadline has passed" });
     }
 
+    /*const userSubmissions = await AssignmentSubmission.find({ studentID: req.user._id });
+    const hasSubmitted = assignment.submissions.some(submissionId => userSubmissions.find(submission => submission._id.toString() === submissionId.toString()));
+
+    if (hasSubmitted) {
+        return res.status(403).send({ message: "Access denied! => You have already submitted this assignment. Please use the resubmitAssignment route to update your submission." });
+    } */
+
+    const existingSubmission = await AssignmentSubmission.findOne({
+        studentID: req.user._id,
+        _id: { $in: assignment.submissions }
+    });
+
+    if (existingSubmission) {
+        return res.status(403).send({ message: "Access denied! => You have already submitted this assignment. Please use the resubmitAssignment route to update your submission." });
+    }
+
     try {
         const files = req.files;
         if (!files || files.length == 0) {
