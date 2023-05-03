@@ -45,6 +45,18 @@ const assignmentSubmissionSchema = new mongoose.Schema({
             }
         }
     },
+    returned: {
+        type: Boolean,
+        default: false
+    },
+    returnDate: {
+        type: Date,
+        default: null
+    },
+    returnDescription:{
+        type: String,
+        default: " "
+    }
 })
 
 const AssignmentSubmission = mongoose.model("AssignmentSubmission", assignmentSubmissionSchema);

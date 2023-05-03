@@ -29,7 +29,12 @@ const storageSubmission = new CloudinaryStorage({
 })
 
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+  //allow for png and jpeg submissions as well
+
+  //handle .docx file as well
+
+
+  if (file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || file.mimetype === 'application/vnd.ms-powerpoint' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.slideshow' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.template') {
     cb(null, true);
   } else {
     cb({ message: "Unsupported file format!"}, false)
