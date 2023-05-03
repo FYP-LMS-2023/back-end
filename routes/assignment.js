@@ -6,7 +6,7 @@ const auth = require("../middlewares/auth");
 const faculty = require("../middlewares/faculty");
 const upload = require("../middlewares/upload");
 
-router.post("/createAssignment", [auth, faculty, upload.single("file")], asyncMiddleware(assignmentService.createAssignment));
+//router.post("/createAssignment", [auth, faculty, upload.single("file")], asyncMiddleware(assignmentService.createAssignment));
 
 
 module.exports = router;

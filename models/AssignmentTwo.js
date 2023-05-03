@@ -46,7 +46,7 @@ const assignment2Schema = new mongoose.Schema({
   submissions: [
     {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Submission",
+        ref: "AssignmentSubmission",
         required: true,
         validate: {
           validator: function (v) {
