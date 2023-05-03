@@ -162,29 +162,52 @@ exports.submitAssignment = async function (req, res) {
             format: file.format
         }))
 
-        const submission = new AssignmentSubmission({
-            uploadDate: Date.now(),
-            files: fileDetails,
-            marksReceived: 0,
-            submissionDescription: req.body?.submissionDescription,
-            submissionNumber: 0,
-            studentID: req.user._id,
-        });
+        const existingSubmission = await AssignmentSubmission.findOne({ studentID: req.user._id, assignmentID: id });
 
-        const result = await submission.save();
-        if (!result) {
-            return res.status(500).send({ message: "Something went wrong!" });
+        if (existingSubmission) {
+            // Update the existing submission
+            existingSubmission.files = fileDetails;
+            existingSubmission.submissionDescription = req.body?.submissionDescription;
+            existingSubmission.uploadDate = Date.now();
+            existingSubmission.marksReceived = 0;
+            existingSubmission.submissionNumber += 1;
+
+            const updatedResult = await existingSubmission.save();
+            if (!updatedResult) {
+                return res.status(500).send({ message: "Something went wrong!" });
+            }
+            res.status(200).send({
+                message: "Assignment resubmitted successfully!",
+                submission: updatedResult
+            });
+        } else {
+            // Create a new submission
+            const submission = new AssignmentSubmission({
+                uploadDate: Date.now(),
+                files: fileDetails,
+                marksReceived: 0,
+                submissionDescription: req.body?.submissionDescription,
+                submissionNumber: 0,
+                studentID: req.user._id,
+                assignmentID: id
+            });
+
+            const result = await submission.save();
+            if (!result) {
+                return res.status(500).send({ message: "Something went wrong!" });
+            }
+
+            assignment.submissions.push(result._id);
+            await assignment.save();
+
+            res.status(200).send({
+                message: "Assignment submitted successfully!",
+                submission: result
+            });
         }
 
-        assignment.submissions.push(result._id);
-        await assignment.save();
-
-        res.status(200).send({
-            message: "Assignment submitted successfully!",
-            submission: result
-        })
-
-    } catch(ex) {
+    }
+    catch(ex) {
         console.log(ex);
         res.status(500).send({ message: "Something went wrong! => Exception detected" });
     }
