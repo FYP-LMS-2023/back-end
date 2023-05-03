@@ -193,15 +193,28 @@ exports.submitAssignment = async function (req, res) {
 exports.resubmitAssignment = async function (req, res) {
     const { id } = req.params;
     if (!id) {
-        return res.status(400).send({ message: "Assignment ID is required!" });
+        return res.status(400).send({ message: "Assignment Submission ID is required!" });
     }
-
-    const assignment = await Assignment.findById(id);
-    if (!assignment) {
+    const submission = await AssignmentSubmission.findById(id);
+    if (!submission) {
         return res.status(400).send({ message: "Invalid assignment ID!" });
     }
 
+    const assignment = await Assignment.findOne({submissions: submission._id});
+    if (!assignment) {
+        return res.status(400).send({ message: "Invalid assignment submission ID!" });
+    }
+
+    if(assignment.dueDate < Date.now()) {
+        return res.status(403).send({ message: "Access denied! => Assignment deadline has passed" });
+    }
+
     const user = await User.findById(req.user._id);
+
+
+    if(submission.studentID.toString() !== req.user._id.toString()) {
+        return res.status(403).send({ message: "Access denied! => You are not the owner of this submission" });
+    }
 
     try {
         const files = req.files;
@@ -224,25 +237,12 @@ exports.resubmitAssignment = async function (req, res) {
         }))
 
         // Find existing submissions and remove them from the assignment's submissions array
-        const existingSubmissions = [];
-        assignment.submissions = assignment.submissions.filter(async (submissionId) => {
-            const submission = await AssignmentSubmission.findById(submissionId);
-            if (submission.studentID.toString() === req.user._id.toString()) {
-                existingSubmissions.push(submission);
-                return false;
-            }
-            return true;
-        });
 
         // Create a new submission with updated fields
-        const submission = existingSubmissions.length > 0 ? existingSubmissions[0] : new AssignmentSubmission({
-            studentID: req.user._id,
-        });
 
         submission.files = fileDetails;
         submission.submissionDescription = req.body?.submissionDescription || submission.submissionDescription;
         submission.uploadDate = Date.now();
-        submission.marksReceived = 0;
         submission.submissionNumber += 1;
 
         const result = await submission.save();
@@ -251,8 +251,6 @@ exports.resubmitAssignment = async function (req, res) {
         }
 
         // Add the new submission to the assignment's submissions array
-        assignment.submissions.push(result._id);
-        await assignment.save();
 
         res.status(200).send({
             message: "Assignment resubmitted successfully!",
