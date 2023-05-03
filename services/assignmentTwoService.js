@@ -300,6 +300,18 @@ exports.gradeAssignmentSubmission = async function (req, res) {
     if(!req.body.marksReceived){
         return res.status(400).send({message: "Marks received is required!"});
     }
+
+    const teacher = await User.findById(req.user._id);
+    const assignment = await Assignment.findOne({submissions: id});
+    if (!assignment) {
+        return res.status(400).send({message: "Assignment not found"});
+    }
+
+    const classA = await Classes.findOne({Assignments: assignment._id});
+    if (!classA) {
+        return res.status(400).send({message: "Class not found"});
+    }
+
     submission.marksReceived = req.body?.marksReceived;
     submission.returnDate = Date.now();
     submission.returnDescription = req.body?.returnDescription;
