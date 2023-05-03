@@ -245,3 +245,46 @@ exports.resubmitAssignment = async function (req, res) {
 
 }
 
+exports.getAssignmentSubmissions = async function (req, res) {
+    const {id} = req.params;
+    if (!id) {
+        return res.status(400).send({ message: "Assignment ID is required!" });
+    }
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+        return res.status(400).send({ message: "Invalid assignment ID!" });
+    }
+    const classA = await Classes.findOne({Assignments: id});
+    if (!classA) {  
+        return res.status(400).send({ message: "Class not found" });
+    }
+
+    if (!classA.teacherIDs.includes(req.user._id)) {
+        return res.status(403).send({ message: "Access denied! => You are not a teacher of this class" });
+    }
+
+    try {
+        const returnAssignment = await Assignment.findById(id).populate(
+            {
+                path: 'submissions',
+                populate: {
+                    path: 'studentID',
+                    select: 'fullName email ERP'
+                }
+            }
+        )
+
+        if (!returnAssignment) {
+            return res.status(400).send({ message: "Invalid assignment ID!" });
+        }
+
+        res.status(200).send({
+            message: "Assignment submissions fetched successfully!",
+            submissions: returnAssignment.submissions
+        })
+    } catch(ex) {
+        console.log(ex);
+        res.status(500).send({ message: "Something went wrong! => Exception detected" });
+    }
+}
+
