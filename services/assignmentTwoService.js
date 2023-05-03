@@ -288,3 +288,25 @@ exports.getAssignmentSubmissions = async function (req, res) {
     }
 }
 
+exports.gradeAssignmentSubmission = async function (req, res) {
+    const {id} = req.params;
+    if (!id) {
+        return res.status(400).send({message: "Submission ID is required!"});
+    }
+    var submission = await AssignmentSubmission.findById(id);
+    if (!submission) {
+        return res.status(400).send({message: "Invalid submission ID!"});
+    }
+    if(!req.body.marksReceived){
+        return res.status(400).send({message: "Marks received is required!"});
+    }
+    submission.marksReceived = req.body?.marksReceived;
+    submission.returnDate = Date.now();
+    submission.returnDescription = req.body?.returnDescription;
+    submission.returned = true;
+    await submission.save();
+    res.status(200).send({
+        message: "Assignment submission graded successfully!",
+        submission: submission
+    })
+}
