@@ -14,7 +14,10 @@ const storageAssignment = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'assignments',
-    format: async (req, file) => path.extname(file.originalname).substring(1),
+    format: async (req, file) => {
+      const ext = path.extname(file.originalname).substring(1);
+      return ['jpg', 'jpeg', 'png'].includes(ext) ? ext : undefined;
+    },
     public_id: (req, file) => `${Date.now()}-${file.originalname}`
   },
 });
@@ -23,10 +26,13 @@ const storageSubmission = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'submissions',
-    format: async (req, file) => path.extname(file.originalname).substring(1),
+    format: async (req, file) => {
+      const ext = path.extname(file.originalname).substring(1);
+      return ['jpg', 'jpeg', 'png'].includes(ext) ? ext : undefined;
+    },
     public_id: (req, file) => `${Date.now()}-${file.originalname}`
   },
-})
+});
 
 const fileFilter = (req, file, cb) => {
   //allow for png and jpeg submissions as well
