@@ -162,79 +162,46 @@ exports.submitAssignment = async function (req, res) {
             format: file.format
         }))
 
-        let existingSubmission = null;
+        const submission = new AssignmentSubmission({
+            uploadDate: Date.now(),
+            files: fileDetails,
+            marksReceived: 0,
+            submissionDescription: req.body?.submissionDescription,
+            submissionNumber: 0,
+            studentID: req.user._id,
+        });
 
-        for (const submissionId of assignment.submissions) {
-            const submission = await AssignmentSubmission.findById(submissionId).select("studentID");
-            if (submission.studentID.toString() === req.user._id.toString()) {
-                existingSubmission = submission;
-                break;
-            }
+        const result = await submission.save();
+        if (!result) {
+            return res.status(500).send({ message: "Something went wrong!" });
         }
 
-        if (existingSubmission) {
-            // Update the existing submission
-            existingSubmission.files = fileDetails;
-            existingSubmission.submissionDescription = req.body?.submissionDescription;
-            existingSubmission.uploadDate = Date.now();
-            existingSubmission.marksReceived = 0;
-            existingSubmission.submissionNumber += 1;
+        assignment.submissions.push(result._id);
+        await assignment.save();
 
-            const updatedResult = await existingSubmission.save();
-            if (!updatedResult) {
-                return res.status(500).send({ message: "Something went wrong!" });
-            }
-            res.status(200).send({
-                message: "Assignment resubmitted successfully!",
-                submission: updatedResult
-            });
-        } else {
-            // Create a new submission
-            const submission = new AssignmentSubmission({
-                uploadDate: Date.now(),
-                files: fileDetails,
-                marksReceived: 0,
-                submissionDescription: req.body?.submissionDescription,
-                submissionNumber: 0,
-                studentID: req.user._id,
-                assignmentID: id
-            });
+        res.status(200).send({
+            message: "Assignment submitted successfully!",
+            submission: result
+        })
 
-            const result = await submission.save();
-            if (!result) {
-                return res.status(500).send({ message: "Something went wrong!" });
-            }
-
-            assignment.submissions.push(result._id);
-            await assignment.save();
-
-            res.status(200).send({
-                message: "Assignment submitted successfully!",
-                submission: result
-            });
-        }
-
-    }
-    catch(ex) {
+    } catch(ex) {
         console.log(ex);
         res.status(500).send({ message: "Something went wrong! => Exception detected" });
     }
 }
 
 exports.resubmitAssignment = async function (req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     if (!id) {
         return res.status(400).send({ message: "Assignment ID is required!" });
     }
-    const submission = await AssignmentSubmission.findById(id);
-    if (!submission) {
-        return res.status(400).send({ message: "Invalid submission ID!" });
-    }
-    const user = await User.findById(req.user._id);
 
-    if (submission.studentID != req.user._id) {
-        return res.status(403).send({ message: "Access denied! => this is not your assignment" });
+    const assignment = await Assignment.findById(id);
+    if (!assignment) {
+        return res.status(400).send({ message: "Invalid assignment ID!" });
     }
+
+    const user = await User.findById(req.user._id);
 
     try {
         const files = req.files;
@@ -246,7 +213,7 @@ exports.resubmitAssignment = async function (req, res) {
         for (const file of files) {
             totalSize += file.size;
         }
-        if (totalSize > 1024*1024*20) {
+        if (totalSize > 1024 * 1024 * 20) {
             return res.status(400).send({ message: "Total file size should be less than 20MB!" });
         }
 
@@ -254,12 +221,26 @@ exports.resubmitAssignment = async function (req, res) {
             url: file.path,
             public_id: file.filename,
             format: file.format
-        })) 
+        }))
 
-        submission.files = fileDetails; 
-        //is there a way to delete the existing files from cloudinary or do we just leave them there? 
-        //what is the better practice
-        submission.submissionDescription = req.body?.submissionDescription;
+        // Find existing submissions and remove them from the assignment's submissions array
+        const existingSubmissions = [];
+        assignment.submissions = assignment.submissions.filter(async (submissionId) => {
+            const submission = await AssignmentSubmission.findById(submissionId);
+            if (submission.studentID.toString() === req.user._id.toString()) {
+                existingSubmissions.push(submission);
+                return false;
+            }
+            return true;
+        });
+
+        // Create a new submission with updated fields
+        const submission = existingSubmissions.length > 0 ? existingSubmissions[0] : new AssignmentSubmission({
+            studentID: req.user._id,
+        });
+
+        submission.files = fileDetails;
+        submission.submissionDescription = req.body?.submissionDescription || submission.submissionDescription;
         submission.uploadDate = Date.now();
         submission.marksReceived = 0;
         submission.submissionNumber += 1;
@@ -269,11 +250,19 @@ exports.resubmitAssignment = async function (req, res) {
             return res.status(500).send({ message: "Something went wrong!" });
         }
 
-    } catch(ex) {
+        // Add the new submission to the assignment's submissions array
+        assignment.submissions.push(result._id);
+        await assignment.save();
+
+        res.status(200).send({
+            message: "Assignment resubmitted successfully!",
+            submission: result
+        })
+
+    } catch (ex) {
         console.log(ex);
         res.status(500).send({ message: "Something went wrong! => Exception detected" });
     }
-
 }
 
 exports.getAssignmentSubmissions = async function (req, res) {
@@ -347,6 +336,7 @@ exports.gradeAssignmentSubmission = async function (req, res) {
     submission.returnDate = Date.now();
     submission.returnDescription = req.body?.returnDescription;
     submission.returned = true;
+
     await submission.save();
     res.status(200).send({
         message: "Assignment submission graded successfully!",
