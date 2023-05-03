@@ -12,40 +12,40 @@ cloudinary.config({
 
 const storageAssignment = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'assignments',
-    format: async (req, file) => {
-      const ext = path.extname(file.originalname).substring(1);
-      return ['jpg', 'jpeg', 'png'].includes(ext) ? ext : undefined;
-    },
-    public_id: (req, file) => `${Date.now()}-${file.originalname}`
+  params: async (req, file) => {
+    const ext = path.extname(file.originalname).substring(1);
+    const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
+    return {
+      folder: 'assignments',
+      format: isImage ? ext : undefined,
+      public_id: `${Date.now()}-${file.originalname}`,
+      resource_type: isImage ? 'image' : 'raw'
+    };
   },
 });
 
 const storageSubmission = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'submissions',
-    format: async (req, file) => {
-      const ext = path.extname(file.originalname).substring(1);
-      return ['jpg', 'jpeg', 'png'].includes(ext) ? ext : undefined;
-    },
-    public_id: (req, file) => `${Date.now()}-${file.originalname}`
+  params: async (req, file) => {
+    const ext = path.extname(file.originalname).substring(1);
+    const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
+    return {
+      folder: 'submissions',
+      format: isImage ? ext : undefined,
+      public_id: `${Date.now()}-${file.originalname}`,
+      resource_type: isImage ? 'image' : 'raw'
+    };
   },
 });
 
 const fileFilter = (req, file, cb) => {
-  //allow for png and jpeg submissions as well
-
-  //handle .docx file as well
-
-
-  if (file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || file.mimetype === 'application/vnd.ms-powerpoint' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.slideshow' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.template') {
+  if (file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || file.mimetype === 'application/vnd.ms-powerpoint' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.slideshow' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.template' || file.mimetype === 'application/zip') {
     cb(null, true);
   } else {
     cb({ message: "Unsupported file format!"}, false)
   }
 }
+
 
 const uploadAssignment = multer({ 
   storage: storageAssignment,
