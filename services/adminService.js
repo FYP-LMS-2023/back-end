@@ -3,7 +3,6 @@ const Joi = require("joi");
 const { User } = require("../models/User");
 Joi.objectId = require("joi-objectid")(Joi);
 
-
 exports.getProfilebyId = async (req, res, next) => {
   var Schema = Joi.object({
     user_ID: Joi.objectId(),
@@ -157,4 +156,25 @@ exports.blockUserbyERP = async (req, res, next) => {
   });
 };
 
+exports.getAllUsers = async (req, res, next) => {
+  const Users = await User.find({});
 
+  for (var i = 0; i < Users.length; i++) {
+    let temp = _.pick(Users[i], [
+      "email",
+      "fullName",
+      "ERP",
+      "userType",
+      "courses",
+      "profilePic",
+      "phoneNumber",
+      "CGPA",
+      "Program",
+      "deleteFlag",
+      "_id",
+    ]);
+
+    Users[i] = temp;
+  }
+  res.json(Users);
+};
