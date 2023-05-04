@@ -38,6 +38,20 @@ const storageSubmission = new CloudinaryStorage({
   },
 });
 
+const storageResource = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    const ext = path.extname(file.originalname).substring(1);
+    const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
+    return {
+      folder: 'resources',
+      format: isImage ? ext : undefined,
+      public_id: `${Date.now()}-${file.originalname}`,
+      resource_type: isImage ? 'image' : 'raw'
+    };
+  },
+});
+
 const fileFilter = (req, file, cb) => {
   if (file.mimetype === 'application/pdf' || file.mimetype === 'application/msword' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.mimetype === 'application/vnd.ms-excel' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' || file.mimetype === 'application/vnd.ms-powerpoint' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.slideshow' || file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.template' || file.mimetype === 'application/zip') {
     cb(null, true);
@@ -46,6 +60,14 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
+const uploadResource = multer({
+  storage: storageResource,
+  limits: {
+    fileSize: 1024 * 1024 * 20, // 20 MB
+    fieledSize: 1024,
+  },
+  fileFilter: fileFilter
+})
 
 const uploadAssignment = multer({ 
   storage: storageAssignment,
@@ -68,5 +90,7 @@ const uploadSubmission = multer({
 
 module.exports = {
   uploadAssignment,
-  uploadSubmission
+  uploadSubmission,
+  uploadResource
+
 }

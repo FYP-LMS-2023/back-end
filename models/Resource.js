@@ -25,26 +25,25 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 5,
+    //default: "Untitled",
   },
   description: {
     type: String,
     //required: true,
     minlength: 5,
   },
-  previewName: {
-    type: String,
-    required: true,
-  },
-  file: {
-    url: {
-      type: String,
-      required: true,
-    },
-    public_id: {
-      type: String,
-      required: true,
-    },
-  },
+  files: [
+    {
+      url: {
+        type: String,
+        required: true
+      },
+      public_id: {
+        type: String,
+        required: true
+      }
+    }
+  ],
 })
 
 // const resourceSchema = new mongoose.Schema({

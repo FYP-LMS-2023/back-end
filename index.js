@@ -22,6 +22,7 @@ const submissionRouter = require("./routes/submission");
 const generalRouter = require("./routes/general");
 const notificationRouter = require("./routes/notification");
 const assignmentTwoRouter = require("./routes/assignmentTwo");
+const resourceRouter = require("./routes/resource");
 
 const connectDB = require("./config/db");
 const wss = require("./websocket/websocketServer");
@@ -66,6 +67,7 @@ app.use("/answer", answerRouter);
 app.use("/general", generalRouter);
 app.use("/notification", notificationRouter);
 app.use("/assignmentTwo", assignmentTwoRouter);
+app.use("/resource", resourceRouter);
 
 app.use(error);
 

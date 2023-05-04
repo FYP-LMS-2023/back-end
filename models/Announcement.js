@@ -33,6 +33,7 @@ const announcementSchema = new mongoose.Schema({
   announcementType: {
     type: String,
     enum: ['general', 'course', 'quiz', 'assignment', 'exam'],
+    default: 'general',
   }
 });
 
