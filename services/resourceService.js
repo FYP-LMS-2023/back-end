@@ -117,17 +117,24 @@ exports.getClassResources = async (req, res, next) => {
     if(!req.params.id) {
         return res.status(400).send("Class ID is required");
     }
+
     const { id } = req.params;
-    const classA = await Classes.findById(id).popuate({
-        path: "Resources",
+    const classObj = await Classes.findById(id)
+      .populate({
+        path: 'Resources',
         populate: {
-            path: "uploadedBy",
-            select: "fullName email",
+          path: 'uploadedBy',
+          model: 'User',
+          select: 'fullName email'
         }
-    });
-    if(!classA) {
+      });
+    if(!classObj) {
         return res.status(400).send("Invalid class ID");
     }
 
-    res.status(200).send(classA.Resources);
+    if(!classObj.studentList.includes(req.user._id) && !classObj.teacherIDs.includes(req.user._id)) {
+        return res.status(400).send("You are not a member of this class");
+    }
+
+    res.status(200).send(classObj.Resources);
 }
