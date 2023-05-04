@@ -335,7 +335,6 @@ exports.gradeAssignmentSubmission = async function (req, res) {
         return res.status(400).send({message: "Marks received is required!"});
     }
 
-    const teacher = await User.findById(req.user._id);
     const assignment = await Assignment.findOne({submissions: id});
     if (!assignment) {
         return res.status(400).send({message: "Assignment not found"});
@@ -344,6 +343,18 @@ exports.gradeAssignmentSubmission = async function (req, res) {
     const classA = await Classes.findOne({Assignments: assignment._id});
     if (!classA) {
         return res.status(400).send({message: "Class not found"});
+    }
+
+    if(!classA.teacherIDs.includes(req.user._id)){
+        return res.status(403).send({message: "Access denied! => You are not a teacher of this class"});
+    }
+
+    if(!req.body.marksReceived) {
+        return res.status(400).send({message: "You are supposed to grade the assignment"});
+    }
+
+    if(req.body.marksReceived > assignment.marks) {
+        return res.status(400).send({message: "Marks received cannot be greater than the total marks"});
     }
 
     submission.marksReceived = req.body?.marksReceived;
