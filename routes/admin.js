@@ -9,5 +9,5 @@ router.get("/getProfile/:id", [auth, admin], asyncMiddleware(adminService.getPro
 router.get("/getProfile/", [auth, admin], asyncMiddleware(adminService.getProfilebyERP));
 router.post("/blockUser/:id", [auth, admin],asyncMiddleware(adminService.blockUserbyId));
 router.post("/blockUser/", [auth,admin], asyncMiddleware(adminService.blockUserbyERP));
-
+router.get("/getAllUsers", [auth, admin], asyncMiddleware(adminService.getAllUsers));
 module.exports = router;
