@@ -157,7 +157,7 @@ exports.blockUserbyERP = async (req, res, next) => {
 };
 
 exports.getAllUsers = async (req, res, next) => {
-  const Users = await User.find({});
+  const Users = await User.find({ userType: { $ne: "Admin" } });
 
   for (var i = 0; i < Users.length; i++) {
     let temp = _.pick(Users[i], [
