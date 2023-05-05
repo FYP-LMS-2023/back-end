@@ -21,7 +21,7 @@ module.exports = async function auth(req, res, next) {
     next();
   } catch (ex) {
     console.log(ex)
-    return res.status(400).send({ message: "Invalid token!" });
+    return res.status(401).send({ message: "Invalid token!" });
   }
 };
 
