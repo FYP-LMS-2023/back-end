@@ -19,12 +19,16 @@ exports.createQuiz = async (req, res, next) => {
   if (error)
     return res.status(400).send({ message: `${error.details[0].message}` });
 
-  const resClass = await Classes.findOne({_id: schemaQuiz.classId})
+  const resClass = await Classes.findOne({ _id: schemaQuiz.classId });
   if (!resClass) return res.status(400).json({ message: "Invalid ClassId." });
 
   let quiz = new Quiz(schemaQuiz);
 
   const result = await quiz.save();
+
+  resClass.Quizzes.push(result._id);
+
+  const result2 = await resClass.save();
 
   return res.json(result);
 
