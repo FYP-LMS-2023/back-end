@@ -97,7 +97,7 @@ exports.createAnnouncement = async (req, res, next) => {
     } 
   }
 
-  exports.getAnnouncements = async (req, res, next) => {
+  exports.getAllClassAnnouncements = async (req, res, next) => {
     const {id} = req.params;
 
     if(!id) {

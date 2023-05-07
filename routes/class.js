@@ -16,4 +16,6 @@ router.post("/uploadSyllabus", [auth, faculty], asyncMiddleware(classService.upl
 
 router.get("/getClassDetails/:classID", [auth], asyncMiddleware(classService.getClassDetails));
 
+
+router.get("/testClass", [auth], asyncMiddleware(classService.testClass));
 module.exports = router;

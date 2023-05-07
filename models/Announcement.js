@@ -44,7 +44,7 @@ const Announcement = mongoose.model("Announcement", announcementSchema);
 function validateAnnouncement(announcement) {
   var schema = Joi.object({
     title: Joi.string().min(5).max(50).required(),
-    description: Joi.string().min(5).max(255).required(),
+    description: Joi.string().min(5).max(1024).required(),
     postedBy: Joi.objectId().required(),
     datePosted: Joi.date().required(),
     announcementType: Joi.string().valid('general', 'course', 'quiz', 'assignment', 'exam').required(),
@@ -55,7 +55,7 @@ function validateAnnouncement(announcement) {
 function validateAnnouncementUpdate(announcement) {
   var schema = Joi.object({
     title: Joi.string().min(5).max(50).optional(),
-    description: Joi.string().min(5).max(255).optional(),
+    description: Joi.string().min(5).max(1024).optional(),
     announcementType: Joi.string().valid('general', 'course', 'quiz', 'assignment', 'exam').optional(),
   }).min(1); // require at least one field to be present
   return schema.validate(announcement)

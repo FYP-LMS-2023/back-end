@@ -267,7 +267,8 @@ exports.createClass = async (req, res, next) => {
   }
 
   exports.getMyActiveClasses = async (req, res, next) => {
-    const studentID = req.body.studentID;
+    const studentID = req.user._id;
+
     if(!studentID){
       return res.status(400).send({message: "Student ID is required!"});
     }
@@ -290,6 +291,8 @@ exports.createClass = async (req, res, next) => {
       .populate('teacherIDs', 'fullName')
       .populate('TA', 'fullName ERP');
     
+    //console.log(enrolledClasses);
+
     if(!enrolledClasses){
       return res.status(400).send({message: "No enrolled classes!"});
     }
@@ -394,7 +397,18 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
   }
 }
 
+exports.testClass = async (req, res, next) => {
+  
+  const classes = await Classes.find({
+    studentList: req.user._id,
+  });
 
+  res.status(200).send({
+    message: "Classes received successfully!",
+    classes,
+  });
+
+}
 
 
 
