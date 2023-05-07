@@ -178,3 +178,27 @@ exports.getAllUsers = async (req, res, next) => {
   }
   res.json(Users);
 };
+
+exports.searchUsers = async (req, res, next) => {
+  const { query } = req.query;
+  if (!query) {
+    return res.status(400).json({
+      message: "Please enter query in query parameter",
+    });
+  }
+
+  const searchCriteria = {
+    $or: [
+      { ERP: { $regex: new RegExp(query), $options: "i" } },
+      { fullName: { $regex: new RegExp(query), $options: "i" } },
+    ],
+  };
+
+  const Users = await User.find(searchCriteria);
+  if(Users.length == 0) {
+    return res.status(200).json({
+      message: "No users found",
+    });
+  } 
+  res.status(200).send(Users);
+}
