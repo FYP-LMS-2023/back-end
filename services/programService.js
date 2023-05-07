@@ -57,4 +57,18 @@ exports.getProgram = async (req, res, next) => {
     });   
   }
   res.status(200).send(program);
-}  
+}
+
+exports.getAllPrograms = async (req, res, next) => {
+  const programs = await Program.find().populate({
+    path: "faculty",
+    select: "fullName email ERP profilePic"
+  });
+
+  if (!programs) {
+    res.status(400).send({
+      message: "No programs exist!"
+    });   
+  }
+  res.status(200).send(programs);
+}
