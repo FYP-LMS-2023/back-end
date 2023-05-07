@@ -6,6 +6,8 @@ const auth = require("../middlewares/auth");
 const admin = require("../middlewares/admin");
 
 router.post("/createProgram",[auth, admin], asyncMiddleware(programService.createProgram));
+router.get("/getProgram/:id", [auth], asyncMiddleware(programService.getProgram));
+
 //testing testing
 
 module.exports = router;

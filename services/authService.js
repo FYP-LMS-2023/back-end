@@ -102,6 +102,7 @@ exports.createUser = async (req, res, next) => {
   const result = await user.save();
 
   program.faculty.push(result._id);
+  await program.save();
 
   if (result) {
     const token = user.generateAuthToken();
