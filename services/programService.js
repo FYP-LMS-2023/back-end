@@ -37,4 +37,24 @@ exports.createProgram = async (req, res, next) => {
       });
     }
   };
-  
+
+
+exports.getProgram = async (req, res, next) => {
+  const {id} = req.params;
+  if (!id) {
+    res.status(400).send({
+      message: "id is required!"
+    });   
+  }
+  const program = await Program.findById(id).populate({
+    path: "faculty",
+    select: "fullName email ERP profilePic"
+  });
+
+  if (!program) {
+    res.status(400).send({
+      message: "program doesn't exist!"
+    });   
+  }
+  res.status(200).send(program);
+}  

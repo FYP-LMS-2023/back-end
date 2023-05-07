@@ -4,6 +4,7 @@ const Joi = require("joi");
 const formidable = require("formidable");
 const { User, validateUser } = require("../models/User.js");
 const Test = require("../models/test");
+const { Program } = require("../models/Program");
 
 exports.test = async (req, res, next) => {
   //get base64 db
@@ -40,6 +41,10 @@ exports.test = async (req, res, next) => {
 exports.createUser = async (req, res, next) => {
   var isAdmin = false;
 
+  if(!req.body.program) {
+    return res.status(400).send({ message: "Program needs to be specified" });
+  }
+
   var schema = {
     email: req.body?.email,
     fullName: req.body?.fullName,
@@ -51,7 +56,7 @@ exports.createUser = async (req, res, next) => {
     profilePic: "https://placeholder.png",
     phoneNumber: req.body?.phoneNumber,
     CGPA: req.body?.CGPA,
-    Program: "6425a66e47dcb940dfee5b59",
+    Program: req.body.program,
   };
   if (req.body?.userType == "Admin") {
     schema = {
@@ -83,12 +88,20 @@ exports.createUser = async (req, res, next) => {
       return res.status(400).send({ message: "User with ERP already exists!" });
   }
 
+  const program = await Program.findById(req.body.program);
+  if (!program)
+    return res.status(400).send({ message: "Program doesn't exist!" });
+  
+  
+
   let user = new User(schema);
 
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(user.password, salt);
 
   const result = await user.save();
+
+  program.faculty.push(result._id);
 
   if (result) {
     const token = user.generateAuthToken();
