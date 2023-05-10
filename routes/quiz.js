@@ -6,5 +6,5 @@ const auth = require("../middlewares/auth");
 const faculty = require("../middlewares/faculty");
 
 router.post("/createQuiz", [auth, faculty], asyncMiddleware(quizService.createQuiz));
-
+router.get("/getQuiz/:id", auth, asyncMiddleware(quizService.getQuiz));
 module.exports = router;

@@ -2,6 +2,8 @@ const { Quiz, validateQuiz } = require("../models/Quiz");
 const { Classes, validateClass } = require("../models/Class.js");
 const { Submission, validateSubmission } = require("../models/Submission");
 const { Question, validateQuestion } = require("../models/Question");
+const Joi = require("joi");
+Joi.objectId = require("joi-objectid")(Joi);
 
 exports.createQuiz = async (req, res, next) => {
   var schemaQuiz = {
@@ -36,4 +38,26 @@ exports.createQuiz = async (req, res, next) => {
   //     const resQuestion = await Question.findbyId(schemaQuiz.questions[i]);
   //     if (!resQuestion) return res.status(400).json({ message: "Invalid QuestionId." });
   //   }
+};
+
+exports.getQuiz = async (req, res, next) => {
+  const schema = Joi.object({
+    id: Joi.objectId().required(),
+  });
+  let validation = schema.validate({ id: req.params.id });
+  if (validation.error)
+    return res
+      .status(400)
+      .send({ message: `${validation.error.details[0].message}` });
+
+  let quiz = await Quiz.findById(req.params.id).populate({
+    path: "questions",
+    populate: {
+      path: "answers",
+    },
+  });
+
+  if (!quiz) return res.status(404).send({ message: "Quiz with ID not found" });
+
+  return res.json(quiz);
 };
