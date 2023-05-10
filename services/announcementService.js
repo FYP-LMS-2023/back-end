@@ -142,15 +142,20 @@ exports.createAnnouncement = async (req, res, next) => {
   }
 
   exports.deleteAnnouncement = async (req, res, next) => {
-    const announcementID = req.params.id;
-    const announcement = await Announcement.findById(announcementID);
+    const {id} = req.params;
+    if(!id) {
+      return res.status(400).send({message: "Announcement ID is required!"});
+    }
+
+    const announcement = await Announcement.findById(id);
     if (!announcement) {
       return res.status(400).send({ message: "Announcement does not exist!" });
     }
-    if(req.user_id.toString() !== announcement.postedBy.toString() || req.user.type !== 'Faculty') {
+    
+    if(req.user._id.toString() !== announcement.postedBy.toString() || req.user.userType !== 'Faculty') {
       return res.status(400).send({message: "You are not authorized to delete this announcement!"});
     }
-    const result = await Announcement.findByIdAndDelete(announcementID);
+    const result = await Announcement.findByIdAndDelete(id);
     if(result){
       res.status(200).send({
         message: "Announcement deleted successfully!",

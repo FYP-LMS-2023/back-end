@@ -353,7 +353,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
     options: { sort: { datePosted: -1}, limit: 3},
     populate: {
       path: 'postedBy',
-      select: 'fullName ERP email profilePicture'
+      select: 'fullName ERP email profilePic'
     },
   });
   if (!channelDetails) {
@@ -370,7 +370,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
     const announcementDetails = await Announcement.findById(classDetails.Announcement[0])
     .populate({
       path: 'postedBy',
-      select: 'fullName email profilePicture'
+      select: 'fullName email profilePic'
     });
     latestAnnouncements.push(announcementDetails);
   }
@@ -384,6 +384,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
         student_list: classDetails.studentList,
         TA: classDetails.TA,
         numberOfStudents: classDetails.studentList.length,
+        syllabus: classDetails.syllabus,
       }
     },
     channel: {
