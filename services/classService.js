@@ -348,7 +348,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
           path: 'postedBy',
           select: 'fullName ERP profilePic',
         }
-      });
+      })
   
     if (!classDetails) {
       return res.status(400).send({ message: "Class does not exist!" });

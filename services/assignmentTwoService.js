@@ -371,3 +371,37 @@ exports.gradeAssignmentSubmission = async function (req, res) {
         submission: submission
     })
 }
+
+exports.getAllClassAssignments = async function (req, res) {
+    const {id} = req.params;
+    if(!id) {
+        return res.status(400).send({message: "Class ID is required!"});
+    }
+    const classA = await Classes.findById(id);
+    if(!classA) {
+        return res.status(400).send({message: "Invalid class ID!"});
+    }
+    // if(!classA.teacherIDs.includes(req.user._id) || !classA.studentList.includes(req.user._id)) {
+    //     return res.status(403).send({message: "Access denied! => You are not a teacher or student of this class"});
+    // }
+    
+    try {
+        const classData = await Classes.findById(id).populate(
+            {
+                path: 'Assignments',
+            });
+        if(!classData) {
+            return res.status(400).send({message: "Class not found"});
+        }
+        res.status(200).send({
+            message: "Assignments fetched successfully!",
+            assignments: classData.Assignments
+        })
+    } catch(ex) {
+        console.log(ex);
+        res.status(500).send({message: "Something went wrong! => Exception detected"});
+    }
+    
+
+
+}

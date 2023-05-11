@@ -17,5 +17,6 @@ router.get("/getAssignmentSubmissions/:id", [auth, faculty], asyncMiddleware(ass
 router.post("/gradeAssignmentSubmission/:id", [auth, faculty], asyncMiddleware(assignment2Service.gradeAssignmentSubmission));
 router.post(("/resubmitAssignment/:id"), [auth, uploadSubmission.array("files")], asyncMiddleware(assignment2Service.resubmitAssignment));
 
+router.get("/getAllClassAssignments/:id", [auth], asyncMiddleware(assignment2Service.getAllClassAssignments));
 module.exports = router;
 
