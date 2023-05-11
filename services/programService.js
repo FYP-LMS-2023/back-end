@@ -18,10 +18,10 @@ exports.createProgram = async (req, res, next) => {
       return res.status(400).send({ message: `${error.details[0].message}` });
   
     const checkName = await Program.find({name: req.body.name})
-    if(checkName.length) return res.status(400).send({ message: "Course with name already exists!"})
+    if(checkName.length) return res.status(400).send({ message: "Program with name already exists!"})
   
     const checkCode = await Program.find({code: req.body.code})
-    if(checkCode.length) return res.status(400).send({ message: "Course with code already exists!"})
+    if(checkCode.length) return res.status(400).send({ message: "Program with code already exists!"})
   
     const program = new Program(schema);
   
