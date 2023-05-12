@@ -381,9 +381,9 @@ exports.getAllClassAssignments = async function (req, res) {
     if(!classA) {
         return res.status(400).send({message: "Invalid class ID!"});
     }
-    // if(!classA.teacherIDs.includes(req.user._id) || !classA.studentList.includes(req.user._id)) {
-    //     return res.status(403).send({message: "Access denied! => You are not a teacher or student of this class"});
-    // }
+    if(!classA.teacherIDs.includes(req.user._id) && !classA.studentList.includes(req.user._id)) {
+        return res.status(403).send({message: "Access denied! => You are not a teacher or student of this class"});
+    }
     
     try {
         const classData = await Classes.findById(id).populate(
@@ -401,7 +401,32 @@ exports.getAllClassAssignments = async function (req, res) {
         console.log(ex);
         res.status(500).send({message: "Something went wrong! => Exception detected"});
     }
-    
+}
 
+exports.getAssignmentById = async function (req, res) {
+    const {id} = req.params;
+    if(!id) {
+        return res.status(400).send({message: "Assignment ID is required!"});
+    }
 
+    const ass1 = await Assignment.findById(id);
+    if(!ass1) {
+        return res.status(400).send({message: "Invalid assignment ID!"});
+    }
+    const classA = await Classes.findOne({Assignments: id});
+    if(!classA) {
+        return res.status(400).send({message: "Class not found"});
+    }
+    console.log(classA._id);
+    console.log(classA.teacherIDs);
+    console.log(req.user._id);
+    console.log(classA.studentList)
+    if(!classA.teacherIDs.includes(req.user._id) && !classA.studentList.includes(req.user._id)) {
+        return res.status(403).send({message: "Access denied! => You are not a teacher or student of this class"});
+    }
+
+    return res.status(200).send({
+        message: "Assignment fetched successfully!",
+        assignment: ass1
+    })
 }
