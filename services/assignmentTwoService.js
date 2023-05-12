@@ -446,10 +446,7 @@ exports.getAssignmentById = async function (req, res) {
     if(!classA) {
         return res.status(400).send({message: "Class not found"});
     }
-    console.log(classA._id);
-    console.log(classA.teacherIDs);
-    console.log(req.user._id);
-    console.log(classA.studentList)
+
     if(!classA.teacherIDs.includes(req.user._id) && !classA.studentList.includes(req.user._id)) {
         return res.status(403).send({message: "Access denied! => You are not a teacher or student of this class"});
     }
