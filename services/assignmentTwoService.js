@@ -282,6 +282,35 @@ exports.resubmitAssignment = async function (req, res) {
     }
 }
 
+exports.getAssignment = async function (req, res, next) {
+    const {id} = req.params;
+
+    try {
+        if (!id) {
+            return res.status(400).send({ message: "Assignment ID is required!" });
+        }
+        const assignment = await Assignment.findById(id);
+        if (!assignment) {
+            return res.status(400).send({ message: "Invalid assignment ID!" });
+        }
+        const user = await User.findById(req.user._id);
+        const classA  = await Classes.findOne({Assignments: id});
+        if (!classA) {
+            return res.status(400).send({ message: "Class not found" });
+        }
+        if (!classA.studentList.includes(req.user._id)) {
+            return res.status(403).send({ message: "Access denied! => You are not a part of this class" });
+        }
+        res.status(200).send({
+            message: "Assignment fetched successfully!",
+            assignment: assignment
+        });
+    } catch (ex) {
+        console.log(ex);
+        res.status(500).send({ message: "Something went wrong!" });
+    }
+}
+
 exports.getAssignmentSubmissions = async function (req, res) {
     const {id} = req.params;
     if (!id) {

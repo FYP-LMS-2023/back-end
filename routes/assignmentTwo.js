@@ -7,9 +7,8 @@ const faculty = require("../middlewares/faculty");
 const { uploadAssignment, uploadSubmission, uploadResource } = require("../middlewares/upload");
 
 router.post("/createAssignment", [auth, faculty, uploadAssignment.array("files")], asyncMiddleware(assignment2Service.createAssignment));
-
 router.get("/getAssignmentFiles/:id", [auth], asyncMiddleware(assignment2Service.getAssignmentFiles));
-
+router.get("/getAssignment/:id", [auth], asyncMiddleware(assignment2Service.getAssignment));
 router.post("/submitAssignment/:id", [auth, uploadSubmission.array("files")], asyncMiddleware(assignment2Service.submitAssignment));
 
 router.get("/getAssignmentSubmissions/:id", [auth, faculty], asyncMiddleware(assignment2Service.getAssignmentSubmissions));
