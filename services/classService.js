@@ -393,6 +393,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
       },
       channel: {
         latestThreads: latestThreads,
+        channelID: classDetails.Channel,
       },
       latestAnnouncement: latestAnnouncement,
       latestAssignment: latestAssignment,

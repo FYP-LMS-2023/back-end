@@ -211,3 +211,61 @@ exports.getPopulatedProfile = async (req, res, next) => {
     res.status(200).send({ user });
   
 };
+
+exports.uploadProfilePic = async (req, res, next) => {
+
+  const user = await User.findById(req.user._id);
+  if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
+  try {
+    const file = req.file;
+
+    console.log(req.file);
+    console.log(file);
+
+    if (!file) {
+      return res.status(400).send({ message: "No file uploaded" });
+    }
+
+    if (file.size > 1024*1024*3) {
+      return res.status(400).send({ message: "File size too large" });
+    }
+
+    const fileDetails = {
+      url: file.path,
+      public_id: file.filename,
+      format: file.mimetype
+    };
+    
+    res.status(200).send({
+      message: "File uploaded successfully!",
+      fileDetails: fileDetails
+    });
+
+  } catch (ex) {
+    console.error(ex);  // log the exception to see more details about the error
+    return res.status(400).send({ message: "No file uploaded => Exception" });
+  }
+};
+
+exports.doThisShit = async (req, res, next) => {
+
+  const newProfilePicUrl = 'https://res.cloudinary.com/dixie2mle/image/upload/v1684248194/profile_pictures/1684248190243-placeholder.png.png';
+
+  const updateResult = await User.updateMany(
+    {},
+    { profilePic: newProfilePicUrl },
+  );
+
+  console.log(updateResult);
+
+  if (updateResult.ok !== 1) {
+    return res.status(500).send({ message: "Failed to update profile pictures" });
+  }
+
+  res.status(200).send({
+    message: `${updateResult.nModified} profile pictures updated successfully!`,
+    result: updateResult
+  });
+};
+
+

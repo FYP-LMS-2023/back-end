@@ -13,9 +13,6 @@ const moment = require("moment");
 const { AssignmentSubmission, validateAssignmentSubmission } = require("../models/AssignmentSubmission.js");
 
 
-
-
-
 exports.createAssignment = async function (req, res) {
 
     //convert to valid mongoose id

@@ -24,6 +24,21 @@ const storageAssignment = new CloudinaryStorage({
   },
 });
 
+const storageProfilePicture = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    const ext = path.extname(file.originalname).substring(1);
+    const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
+    return {
+      folder: 'profile_pictures',
+      format: isImage ? ext : undefined,
+      public_id: `${Date.now()}-${file.originalname}`,
+      resource_type: isImage ? 'image' : 'raw'
+    };
+  },
+})
+
+
 const storageSubmission = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
@@ -60,6 +75,23 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
+const fileFilterProfilePicture = (req, file, cb) => {
+  if (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') {
+    cb(null, true);
+  } else {
+    cb({ message: "Unsupported file format!"}, false)
+  }
+}
+
+const uploadProfilePicture = multer({
+  storage: storageProfilePicture,
+  limits: {
+    fileSize: 1024 * 1024 * 3, // 3 MB
+    fieledSize: 1024,
+  },
+  fileFilter: fileFilterProfilePicture
+})
+
 const uploadResource = multer({
   storage: storageResource,
   limits: {
@@ -91,6 +123,6 @@ const uploadSubmission = multer({
 module.exports = {
   uploadAssignment,
   uploadSubmission,
-  uploadResource
-
+  uploadResource,
+  uploadProfilePicture
 }
