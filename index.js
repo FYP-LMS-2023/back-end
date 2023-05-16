@@ -25,6 +25,7 @@ const notificationRouter = require("./routes/notification");
 const assignmentTwoRouter = require("./routes/assignmentTwo");
 const resourceRouter = require("./routes/resource");
 
+
 // const connectDB = require("./config/db");
 const connectDB = async () => {
   try {
@@ -53,7 +54,7 @@ const connectDB = async () => {
       process.exit(1);
     }
 
-    connectDB();
+    // connectDB();
     app.use(cors());
 
     app.use(morgan());
@@ -98,6 +99,8 @@ const connectDB = async () => {
     console.log(error);
   }
 };
+
+connectDB();
 // const wss = require("./websocket/websocketServer");
 // const http = require("http");
 
