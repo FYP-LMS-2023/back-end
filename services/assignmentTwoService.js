@@ -104,7 +104,7 @@ exports.getAssignmentFiles = async function (req, res, next) {
         if (!classA) {
             return res.status(400).send({ message: "Class not found" });
         }
-        if (!classA.studentList.includes(req.user._id)) {
+        if (!classA.studentList.includes(req.user._id) && !classA.teacherIDs.includes(req.user._id)) {
             return res.status(403).send({ message: "Access denied! => You are not a part of this class" });
         }
         res.status(200).send({
@@ -452,4 +452,42 @@ exports.getAssignmentById = async function (req, res) {
         message: "Assignment fetched successfully!",
         assignment: ass1
     })
+}
+
+exports.getAssignmentDetailsStudent = async function (req, res) {
+    const {id} = req.params;
+    if(!id) {
+        return res.status(400).send({message: "Assignment ID is required!"});
+    }
+
+    var isSubmitted = false;
+
+    const ass1 = await Assignment.findById(id);
+    if(!ass1){
+        return res.status(400).send({message: "Invalid assignment ID!"});
+    }
+
+    const classA = await Classes.findOne({Assignments: id});
+    if(!classA) {
+        return res.status(400).send({message: "Class not found"});
+    }
+
+    if(!classA.studentList.includes(req.user._id)) {
+        return res.status(403).send({message: "Access denied! => You are not a student of this class"});
+    }
+
+    const ass2 = await Assignment.findById(id).populate('submissions');
+
+    for (let submission of ass2.submissions) {
+        if(submission.studentID == req.user._id) {
+            isSubmitted = true;
+            break;
+        }
+    }
+
+    res.status(200).send({
+        message: "Assignment details fetched successfully!",
+        assignment: ass1,
+        isSubmitted: isSubmitted
+    })  
 }

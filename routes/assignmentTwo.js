@@ -11,7 +11,7 @@ router.get("/getAssignmentFiles/:id", [auth], asyncMiddleware(assignment2Service
 router.get("/getAssignment/:id", [auth], asyncMiddleware(assignment2Service.getAssignment));
 router.post("/submitAssignment/:id", [auth, uploadSubmission.array("files")], asyncMiddleware(assignment2Service.submitAssignment));
 
-router.get("/getAssignmentSubmissions/:id", [auth, faculty], asyncMiddleware(assignment2Service.getAssignmentSubmissions));
+router.get("/getAssignmentSubmissionsFac/:id", [auth, faculty], asyncMiddleware(assignment2Service.getAssignmentSubmissions));
 
 router.post("/gradeAssignmentSubmission/:id", [auth, faculty], asyncMiddleware(assignment2Service.gradeAssignmentSubmission));
 router.post(("/resubmitAssignment/:id"), [auth, uploadSubmission.array("files")], asyncMiddleware(assignment2Service.resubmitAssignment));
@@ -19,6 +19,7 @@ router.post(("/resubmitAssignment/:id"), [auth, uploadSubmission.array("files")]
 router.get("/getAllClassAssignments/:id", [auth], asyncMiddleware(assignment2Service.getAllClassAssignments));
 router.get("/getAssignmentById/:id", [auth], asyncMiddleware(assignment2Service.getAssignmentById));
 
+router.get("/getAssignmentDetailsStudent/:id", [auth], asyncMiddleware(assignment2Service.getAssignmentDetailsStudent));
 
 module.exports = router;
 
