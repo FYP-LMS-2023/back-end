@@ -4,7 +4,8 @@ const { Comment, validateComment } = require("../models/Comment.js");
 const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
 const { createNotificationThreadReply, createNotificationCommentReply } = require("../models/Notification.js");
-  
+const { Reply, validateReply } = require("../models/Reply.js");
+
   exports.createChannel = async (req, res, next) => {
     var schema = {
       threads: req.body.threads,
@@ -133,11 +134,46 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
     // })
   };
   
+  // exports.getThread = async (req, res, next) => {
+  //   const {id} = req.params;
+
+  //   const thread = await Thread.findById(id);
+
+  //   if (!thread) {
+  //     return res.status(400).send({ message: "Thread does not exist!" });
+  //   }
+  
+  //   var populatedThread =  await Thread.findById(id)
+  //   .populate({
+  //     path: "comments",
+  //     populate: [
+  //       { path: "postedBy", select: "fullName ERP profilePic -_id" },
+  //       {
+  //         path: "replies",
+  //         populate: { path: "userID", select: "fullName ERP profilePic -_id" },
+  //       },
+  //     ],
+  //     options: { sort: { datePosted: -1 } },
+  //   })
+  
+  //   if (!populatedThread) {
+  //     return res.status(400).send({ message: "Thread does not exist!" });
+  //   }
+  //   const upvoteCount = populatedThread.upvotes.length;
+  //   const downvoteCount = populatedThread.downvotes.length;
+
+  //   res.status(200).send({
+  //     upvoteCount,
+  //     downvoteCount,
+  //     ...populatedThread.toObject(),
+  //   });
+  // };
+
   exports.getThread = async (req, res, next) => {
     const {id} = req.params;
-
+  
     const thread = await Thread.findById(id);
-
+  
     if (!thread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
@@ -147,23 +183,41 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
       path: "comments",
       populate: [
         { path: "postedBy", select: "fullName ERP profilePic -_id" },
+        { path: "upvotes" },
+        { path: "downvotes" },
         {
           path: "replies",
-          populate: { path: "userID", select: "fullName ERP profilePic -_id" },
+          populate: [
+            { path: "postedBy", select: "fullName ERP profilePic -_id" },
+            { path: "upvotes" },
+            { path: "downvotes" },
+          ],
         },
       ],
       options: { sort: { datePosted: -1 } },
-    })
+    });
   
     if (!populatedThread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
-    const upvoteCount = populatedThread.upvotes.length;
-    const downvoteCount = populatedThread.downvotes.length;
-
+  
+    // Upvote and downvote counts for the thread
+    const threadUpvoteCount = populatedThread.upvotes.length;
+    const threadDownvoteCount = populatedThread.downvotes.length;
+  
+    // Calculate upvote and downvote counts for comments and replies
+    populatedThread.comments.forEach(comment => {
+      comment.upvoteCount = comment.upvotes.length;
+      comment.downvoteCount = comment.downvotes.length;
+      comment.replies.forEach(reply => {
+        reply.upvoteCount = reply.upvotes.length;
+        reply.downvoteCount = reply.downvotes.length;
+      });
+    });
+  
     res.status(200).send({
-      upvoteCount,
-      downvoteCount,
+      threadUpvoteCount,
+      threadDownvoteCount,
       ...populatedThread.toObject(),
     });
   };
@@ -194,6 +248,8 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
       postedBy: user.id,
       comment: req.body.comment,
       replies: [],
+      downvotes: [],
+      upvotes: [],
     };
   
     const { error } = validateComment(schema, res);
@@ -243,7 +299,7 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
     }
     const fullName = user.fullName;
 
-    if (!req.body.repliedComment) {
+    if (!req.body.reply) {
       return res.status(400).send({ message: "Comment for reply is required!" });
     }
   
@@ -251,26 +307,40 @@ const { createNotificationThreadReply, createNotificationCommentReply } = requir
     if (!comment) {
       return res.status(400).send({ message: "Comment does not exist!" });
     }
-  
-    comment.replies.push({
-      userID: user._id,
-      repliedComment: req.body.repliedComment,
-    });
-  
+
+    var schema = {
+      postedBy: user.id,
+      reply: req.body.reply,
+      downvotes: [],
+      upvotes: [],
+    } 
+
+    const {error} = validateReply(schema, res);
+    if (error) {
+      console.log("validation error => reply");
+      return res.status(400).send({ message: `${error.details[0].message}` });
+    }
+
+    let reply = new Reply(schema);
+    const replyResult = await reply.save();
+
+    comment.replies.push(replyResult._id);
     const result = await comment.save();
+
 
     const thread = await Thread.findOne({comments: {$in: [req.body.commentID]}});
     if (!thread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
 
-    const newReply = result.replies[result.replies.length - 1];
+    //const newReply = result.replies[result.replies.length - 1];
     await createNotificationCommentReply(thread, comment, newReply, fullName);
     
     if (result) {
       res.status(200).send({
         message: "Reply created successfully!",
         result,
+        replyResult
       });
     } else {
       res.status(500).send({

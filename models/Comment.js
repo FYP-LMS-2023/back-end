@@ -25,28 +25,23 @@ const commentSchema = new mongoose.Schema({
     default: Date.now,
   },
   replies: [
-    {
-      userID: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-        validate: {
-          validator: function (v) {
-            return mongoose.Types.ObjectId.isValid(v);
-          },
-          message: (props) => `${props.value} is not a valid user id!`,
-        },
-      },
-      repliedComment: {
-        type: String,
-        required: true,
-      },
-      datePosted: {
-        type: Date,
-        default: Date.now,
-      }
-    },
+   {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Reply",
+   }
   ],
+  upvotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
+  downvotes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ]
 });
 
 const Comment = mongoose.model("Comment", commentSchema);
@@ -55,12 +50,9 @@ function validateComment(comment) {
   const schema = Joi.object({
     comment: Joi.string().required(),
     postedBy: Joi.objectId().required(),
-    replies: Joi.array().items(
-      Joi.object({
-        userID: Joi.objectId().required(),
-        repliedComment: Joi.string().required()
-      })
-    ),
+    replies: Joi.array().items(Joi.objectId()),
+    upvotes: Joi.array().items(Joi.objectId()),
+    downvotes: Joi.array().items(Joi.objectId()),
   });
   return schema.validate(comment);
 }
