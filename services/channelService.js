@@ -179,6 +179,63 @@ const { Reply, validateReply } = require("../models/Reply.js");
   //   });
   // };
 
+  // exports.getThread = async (req, res, next) => {
+  //   const {id} = req.params;
+  
+  //   const thread = await Thread.findById(id);
+  
+  //   if (!thread) {
+  //     return res.status(400).send({ message: "Thread does not exist!" });
+  //   }
+  
+  //   var populatedThread =  await Thread.findById(id)
+  //   .populate({
+  //     path: "postedBy",
+  //     select: "fullName ERP profilePic -_id",
+  //   })
+  //   .populate({
+  //     path: "comments",
+  //     populate: [
+  //       { path: "postedBy", select: "fullName ERP profilePic -_id" },
+  //       { path: "upvotes", select: "fullName ERP profilePic -_id"},
+  //       { path: "downvotes", select: "fullName ERP profilePic -_id" },
+  //       {
+  //         path: "replies",
+  //         populate: [
+  //           { path: "postedBy", select: "fullName ERP profilePic -_id" },
+  //           { path: "upvotes", select: "fullName ERP profilePic -_id" },
+  //           { path: "downvotes", select: "fullName ERP profilePic -_id" },
+  //         ],
+  //       },
+  //     ],
+  //     options: { sort: { datePosted: -1 } },
+  //   });
+  
+  //   if (!populatedThread) {
+  //     return res.status(400).send({ message: "Thread does not exist!" });
+  //   }
+  
+  //   // Upvote and downvote counts for the thread
+  //   const threadUpvoteCount = populatedThread.upvotes.length;
+  //   const threadDownvoteCount = populatedThread.downvotes.length;
+  
+  //   // Calculate upvote and downvote counts for comments and replies
+  //   populatedThread.comments.forEach(comment => {
+  //     comment.upvoteCount = comment.upvotes.length;
+  //     comment.downvoteCount = comment.downvotes.length;
+  //     comment.replies.forEach(reply => {
+  //       reply.upvoteCount = reply.upvotes.length;
+  //       reply.downvoteCount = reply.downvotes.length;
+  //     });
+  //   });
+  
+  //   res.status(200).send({
+  //     threadUpvoteCount,
+  //     threadDownvoteCount,
+  //     ...populatedThread.toObject(),
+  //   });
+  // };
+
   exports.getThread = async (req, res, next) => {
     const {id} = req.params;
   
@@ -215,25 +272,7 @@ const { Reply, validateReply } = require("../models/Reply.js");
       return res.status(400).send({ message: "Thread does not exist!" });
     }
   
-    // Upvote and downvote counts for the thread
-    const threadUpvoteCount = populatedThread.upvotes.length;
-    const threadDownvoteCount = populatedThread.downvotes.length;
-  
-    // Calculate upvote and downvote counts for comments and replies
-    populatedThread.comments.forEach(comment => {
-      comment.upvoteCount = comment.upvotes.length;
-      comment.downvoteCount = comment.downvotes.length;
-      comment.replies.forEach(reply => {
-        reply.upvoteCount = reply.upvotes.length;
-        reply.downvoteCount = reply.downvotes.length;
-      });
-    });
-  
-    res.status(200).send({
-      threadUpvoteCount,
-      threadDownvoteCount,
-      ...populatedThread.toObject(),
-    });
+    res.status(200).send(populatedThread.toObject());
   };
   
   exports.createCommentOnThread = async (req, res, next) => {
