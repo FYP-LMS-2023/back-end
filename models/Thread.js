@@ -69,6 +69,17 @@ const threadSchema = new mongoose.Schema({
   ],
 });
 
+threadSchema.virtual('upvoteCount').get(function () {
+  return this.upvotes.length;
+});
+
+threadSchema.virtual('downvoteCount').get(function () {
+  return this.downvotes.length;
+});
+
+threadSchema.set('toJSON', { virtuals: true });
+threadSchema.set('toObject', { virtuals: true });
+
 const Thread = new mongoose.model("Thread", threadSchema);
 
 function validateThread(thread) {

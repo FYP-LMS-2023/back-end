@@ -131,9 +131,9 @@ async function createNotificationThreadReply(thread, comment, fullName) {
 
 async function createNotificationCommentReply(thread, comment, reply, replyAuthorFullName) {
   const commentAuthor = await User.findById(comment.postedBy);
-  const truncatedReply = reply.repliedComment.length > 50
-    ? reply.repliedComment.substring(0, 47) + "..."
-    : reply.repliedComment;
+  const truncatedReply = reply.reply.length > 50
+    ? reply.reply.substring(0, 47) + "..."
+    : reply.reply;
 
   const newNotification = new Notification({
     title: `New reply to your comment in thread ${thread.title}`,

@@ -55,7 +55,7 @@ const { Reply, validateReply } = require("../models/Reply.js");
       return res.status(400).send({ message: "Channel does not exist!" });
     }
 
-    const classA = await Classes.findOne({ Channel : req.body.channelID });
+    const classA = await Classes.findOne({ Channel : id });
     if (!classA) {
       return res.status(400).send({ message: "Class does not exist!" });
     }
@@ -64,7 +64,6 @@ const { Reply, validateReply } = require("../models/Reply.js");
       return res.status(400).send({ message: "You are not a part of this class!" });
     }
 
-  
     var schema = {
       postedBy: user.id,
       title: req.body.title,
@@ -246,12 +245,16 @@ const { Reply, validateReply } = require("../models/Reply.js");
       return res.status(400).send({ message: "Thread does not exist!" });
     }
 
+    if (!req.body.comment) {
+      return res.status(400).send({ message: "Comment is required!" });
+    }
+
     const user = await User.findById(req.user._id);
     if(!user){
       return res.status(400).send({ message: "User does not exist!" });
     }
 
-    const channel = await Channel.findOne({ threads : req.body.threadID });
+    const channel = await Channel.findOne({ threads : id });
     const classA = await Classes.findOne({ Channel : channel._id });
 
     if(!classA.studentList.includes(req.user._id) && !classA.TA.includes(req.user._id) && !classA.teacherIDs.includes(req.user._id)){
@@ -344,13 +347,13 @@ const { Reply, validateReply } = require("../models/Reply.js");
     const result = await comment.save();
 
 
-    const thread = await Thread.findOne({comments: {$in: [req.body.commentID]}});
+    const thread = await Thread.findOne({comments: {$in: [id]}});
     if (!thread) {
       return res.status(400).send({ message: "Thread does not exist!" });
     }
 
     //const newReply = result.replies[result.replies.length - 1];
-    await createNotificationCommentReply(thread, comment, newReply, fullName);
+    await createNotificationCommentReply(thread, comment, replyResult, fullName);
     
     if (result) {
       res.status(200).send({

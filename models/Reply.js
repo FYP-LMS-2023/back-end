@@ -38,6 +38,18 @@ const replySchema = new mongoose.Schema({
     ],
 });
 
+replySchema.virtual('upvoteCount').get(function () {
+    return this.upvotes.length;
+});
+  
+replySchema.virtual('downvoteCount').get(function () {
+    return this.downvotes.length;
+});
+
+replySchema.set('toJSON', { virtuals: true });
+replySchema.set('toObject', { virtuals: true });
+
+
 const Reply = mongoose.model("Reply", replySchema);
 
 function validateReply(reply) {

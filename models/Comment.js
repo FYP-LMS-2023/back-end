@@ -44,6 +44,17 @@ const commentSchema = new mongoose.Schema({
   ]
 });
 
+commentSchema.virtual('upvoteCount').get(function () {
+  return this.upvotes.length;
+});
+
+commentSchema.virtual('downvoteCount').get(function () {
+  return this.downvotes.length;
+});
+
+commentSchema.set('toJSON', { virtuals: true });
+commentSchema.set('toObject', { virtuals: true });
+
 const Comment = mongoose.model("Comment", commentSchema);
 
 function validateComment(comment) {
