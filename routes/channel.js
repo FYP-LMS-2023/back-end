@@ -9,17 +9,24 @@ const faculty = require("../middlewares/faculty");
 router.post("/createChannel", auth, asyncMiddleware(channelService.createChannel));
 
 
-router.post("/createThread", auth, asyncMiddleware(channelService.createThread));
+router.post("/createThread/:id", auth, asyncMiddleware(channelService.createThread));
 router.post("/createComment", auth, asyncMiddleware(channelService.createComment));
 router.get("/getChannel/:id", auth, asyncMiddleware(channelService.getChannel));
 
 
-router.post("/createCommentOnThread", auth, asyncMiddleware(channelService.createCommentOnThread));
-router.post("/replyToComment", auth, asyncMiddleware(channelService.replyToComment));
-router.post("/upvoteThread", auth, asyncMiddleware(channelService.upvoteThread));
-router.post("/downvoteThread", auth, asyncMiddleware(channelService.downvoteThread));
+router.post("/createCommentOnThread/:id", auth, asyncMiddleware(channelService.createCommentOnThread));
+router.post("/replyToComment/:id", auth, asyncMiddleware(channelService.replyToComment));
+router.post("/upvoteThread/:id", auth, asyncMiddleware(channelService.upvoteThread));
+router.post("/downvoteThread/:id", auth, asyncMiddleware(channelService.downvoteThread));
 
 router.get("/getThread/:id", auth, asyncMiddleware(channelService.getThread));
+
+
+//comment and reply
+router.post("/upvoteComment/:id", auth, asyncMiddleware(channelService.upvoteComment));
+router.post("/downvoteComment/:id", auth, asyncMiddleware(channelService.downvoteComment));
+router.post("/upvoteReply/:id", auth, asyncMiddleware(channelService.upvoteReply));
+router.post("/downvoteReply/:id", auth, asyncMiddleware(channelService.downvoteReply));
 
 
 module.exports = router;
