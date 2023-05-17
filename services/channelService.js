@@ -410,6 +410,61 @@ const { Reply, validateReply } = require("../models/Reply.js");
     await thread.save();
     res.status(200).send({ message: "Downvote successful!", thread });
   }
+
+  exports.upvoteComment = async (req, res, next) => {
+    if(!req.body.commentID) {
+      return res.status(400).send({ message: "Comment ID is required!" });
+    }
+    const user = await User.findById(req.user._id);
+    const comment = await Comment.findById(req.body.commentID);
+  
+    if (!user || !comment) {
+      return res.status(400).send({ message: "User or Comment does not exist!" });
+    }
+  
+    const hasUpvoted = comment.upvotes.some((vote) => vote.equals(user._id));
+    const hasDownvoted = comment.downvotes.some((vote) => vote.equals(user._id));
+  
+    if (hasDownvoted) {
+      comment.downvotes.pull(user._id);
+      comment.upvotes.push(user._id);
+    } else if (hasUpvoted) {
+      comment.upvotes.pull(user._id);
+    } else {
+      //upvote the comment
+      comment.upvotes.push(user._id);
+    }
+    await comment.save();
+    res.status(200).send({ message: "Upvote successful!", comment });
+  }
+  
+  exports.downvoteComment = async (req, res, next) => {
+    if (!req.body.commentID) {
+      return res.status(400).send({ message: "Comment ID is required!" });
+    }
+  
+    const user = await User.findById(req.user._id);
+    const comment = await Comment.findById(req.body.commentID);
+  
+    if (!user || !comment) {
+      return res.status(400).send({ message: "User or Comment does not exist!" });
+    }
+  
+    const hasUpvoted = comment.upvotes.some((vote) => vote.equals(user._id));
+    const hasDownvoted = comment.downvotes.some((vote) => vote.equals(user._id));
+  
+    if (hasUpvoted) {
+      comment.upvotes.pull(user._id);
+      comment.downvotes.push(user._id);
+    } else if (hasDownvoted) {
+      comment.downvotes.pull(user._id);
+    } else {
+      //downvote the comment
+      comment.downvotes.push(user._id);
+    }
+    await comment.save();
+    res.status(200).send({ message: "Downvote successful!", comment });
+  }
   
   //DONT USE THIS ONE
   exports.createComment = async (req, res, next) => {
