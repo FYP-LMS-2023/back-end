@@ -190,17 +190,21 @@ const { Reply, validateReply } = require("../models/Reply.js");
   
     var populatedThread =  await Thread.findById(id)
     .populate({
+      path: "postedBy",
+      select: "fullName ERP profilePic -_id",
+    })
+    .populate({
       path: "comments",
       populate: [
         { path: "postedBy", select: "fullName ERP profilePic -_id" },
-        { path: "upvotes" },
-        { path: "downvotes" },
+        { path: "upvotes", select: "fullName ERP profilePic -_id"},
+        { path: "downvotes", select: "fullName ERP profilePic -_id" },
         {
           path: "replies",
           populate: [
             { path: "postedBy", select: "fullName ERP profilePic -_id" },
-            { path: "upvotes" },
-            { path: "downvotes" },
+            { path: "upvotes", select: "fullName ERP profilePic -_id" },
+            { path: "downvotes", select: "fullName ERP profilePic -_id" },
           ],
         },
       ],
