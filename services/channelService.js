@@ -465,6 +465,61 @@ const { Reply, validateReply } = require("../models/Reply.js");
     await comment.save();
     res.status(200).send({ message: "Downvote successful!", comment });
   }
+
+  exports.upvoteReply = async (req, res, next) => {
+    if(!req.body.replyID) {
+      return res.status(400).send({ message: "Reply ID is required!" });
+    }
+    const user = await User.findById(req.user._id);
+    const reply = await Reply.findById(req.body.replyID);
+  
+    if (!user || !reply) {
+      return res.status(400).send({ message: "User or Reply does not exist!" });
+    }
+  
+    const hasUpvoted = reply.upvotes.some((vote) => vote.equals(user._id));
+    const hasDownvoted = reply.downvotes.some((vote) => vote.equals(user._id));
+  
+    if (hasDownvoted) {
+      reply.downvotes.pull(user._id);
+      reply.upvotes.push(user._id);
+    } else if (hasUpvoted) {
+      reply.upvotes.pull(user._id);
+    } else {
+      //upvote the reply
+      reply.upvotes.push(user._id);
+    }
+    await reply.save();
+    res.status(200).send({ message: "Upvote successful!", reply });
+  }
+  
+  exports.downvoteReply = async (req, res, next) => {
+    if (!req.body.replyID) {
+      return res.status(400).send({ message: "Reply ID is required!" });
+    }
+  
+    const user = await User.findById(req.user._id);
+    const reply = await Reply.findById(req.body.replyID);
+  
+    if (!user || !reply) {
+      return res.status(400).send({ message: "User or Reply does not exist!" });
+    }
+  
+    const hasUpvoted = reply.upvotes.some((vote) => vote.equals(user._id));
+    const hasDownvoted = reply.downvotes.some((vote) => vote.equals(user._id));
+  
+    if (hasUpvoted) {
+      reply.upvotes.pull(user._id);
+      reply.downvotes.push(user._id);
+    } else if (hasDownvoted) {
+      reply.downvotes.pull(user._id);
+    } else {
+      //downvote the reply
+      reply.downvotes.push(user._id);
+    }
+    await reply.save();
+    res.status(200).send({ message: "Downvote successful!", reply });
+  }
   
   //DONT USE THIS ONE
   exports.createComment = async (req, res, next) => {
