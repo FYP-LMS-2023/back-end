@@ -33,11 +33,17 @@ const { Reply, validateReply } = require("../models/Reply.js");
   };
   
   exports.createThread = async (req, res, next) => {
-    if (!req.body.channelID) {
+    const {id} = req.params;
+
+    if(!id){
       return res.status(400).send({ message: "Channel ID is required!" });
     }
+
+    if(!req.body.title){
+      return res.status(400).send({ message: "Title is required!" });
+    }
   
-    const channelCheck = await Channel.findById(req.body.channelID);
+    const channelCheck = await Channel.findById(id);
     //const user = await User.findById(req.body.postedBy);
     const user = await User.findById(req.user._id);
   
@@ -98,14 +104,19 @@ const { Reply, validateReply } = require("../models/Reply.js");
   };
   
   exports.getChannel = async (req, res, next) => {
+
+    const {id} = req.params;
+    if(!id){
+      return res.status(400).send({ message: "Channel ID is required!" });
+    }
+
+
     const user = await User.findById(req.user._id);
     if(!user){
       return res.status(400).send({ message: "User does not exist!" });
     }
     
-
-    
-    const channel = await Channel.findById(req.params.id);
+    const channel = await Channel.findById(id);
     if (!channel) {
       return res.status(400).send({ message: "Channel does not exist!" });
     }
@@ -223,10 +234,13 @@ const { Reply, validateReply } = require("../models/Reply.js");
   };
   
   exports.createCommentOnThread = async (req, res, next) => {
-    if (!req.body.threadID) {
+
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Thread ID is required!" });
     }
-    const thread = await Thread.findById(req.body.threadID);
+
+    const thread = await Thread.findById(id);
   
     if (!thread) {
       return res.status(400).send({ message: "Thread does not exist!" });
@@ -290,9 +304,11 @@ const { Reply, validateReply } = require("../models/Reply.js");
   };
   
   exports.replyToComment = async (req, res, next) => {
-    if (!req.body.commentID) {
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Comment ID is required!" });
     }
+
     const user = await User.findById(req.user._id);
     if(!user){
       return res.status(400).send({ message: "User does not exist!" });
@@ -303,7 +319,7 @@ const { Reply, validateReply } = require("../models/Reply.js");
       return res.status(400).send({ message: "Comment for reply is required!" });
     }
   
-    var comment = await Comment.findById(req.body.commentID);
+    var comment = await Comment.findById(id);
     if (!comment) {
       return res.status(400).send({ message: "Comment does not exist!" });
     }
@@ -351,11 +367,13 @@ const { Reply, validateReply } = require("../models/Reply.js");
 
   exports.upvoteThread = async (req, res, next) => {
 
-    if(!req.body.threadID) {
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Thread ID is required!" });
     }
+
     const user = await User.findById(req.user._id);
-    const thread = await Thread.findById( req.body.threadID );
+    const thread = await Thread.findById( id );
 
     if (!user || !thread) {
       return res.status(400).send({ message: "User or Thread does not exist!" });
@@ -380,15 +398,14 @@ const { Reply, validateReply } = require("../models/Reply.js");
   }
 
   exports.downvoteThread = async (req, res, next) => {
-    if (!req.body.userID) {
-      return res.status(400).send({ message: "User ID is required!" });
-    }
-    if (!req.body.threadID) {
+
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Thread ID is required!" });
     }
 
-    const user = await User.findById(req.body.userID);
-    const thread = await Thread.findById( req.body.threadID );
+    const user = await User.findById(req.user._id);
+    const thread = await Thread.findById( id );
 
     if (!user || !thread) {
       return res.status(400).send({ message: "User or Thread does not exist!" });
@@ -412,11 +429,13 @@ const { Reply, validateReply } = require("../models/Reply.js");
   }
 
   exports.upvoteComment = async (req, res, next) => {
-    if(!req.body.commentID) {
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Comment ID is required!" });
     }
+
     const user = await User.findById(req.user._id);
-    const comment = await Comment.findById(req.body.commentID);
+    const comment = await Comment.findById(id);
   
     if (!user || !comment) {
       return res.status(400).send({ message: "User or Comment does not exist!" });
@@ -439,12 +458,13 @@ const { Reply, validateReply } = require("../models/Reply.js");
   }
   
   exports.downvoteComment = async (req, res, next) => {
-    if (!req.body.commentID) {
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Comment ID is required!" });
     }
   
     const user = await User.findById(req.user._id);
-    const comment = await Comment.findById(req.body.commentID);
+    const comment = await Comment.findById(id);
   
     if (!user || !comment) {
       return res.status(400).send({ message: "User or Comment does not exist!" });
@@ -467,11 +487,14 @@ const { Reply, validateReply } = require("../models/Reply.js");
   }
 
   exports.upvoteReply = async (req, res, next) => {
-    if(!req.body.replyID) {
+
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Reply ID is required!" });
     }
+
     const user = await User.findById(req.user._id);
-    const reply = await Reply.findById(req.body.replyID);
+    const reply = await Reply.findById(id);
   
     if (!user || !reply) {
       return res.status(400).send({ message: "User or Reply does not exist!" });
@@ -494,12 +517,13 @@ const { Reply, validateReply } = require("../models/Reply.js");
   }
   
   exports.downvoteReply = async (req, res, next) => {
-    if (!req.body.replyID) {
+    const {id} = req.params;
+    if(!id){
       return res.status(400).send({ message: "Reply ID is required!" });
     }
   
     const user = await User.findById(req.user._id);
-    const reply = await Reply.findById(req.body.replyID);
+    const reply = await Reply.findById(id);
   
     if (!user || !reply) {
       return res.status(400).send({ message: "User or Reply does not exist!" });
