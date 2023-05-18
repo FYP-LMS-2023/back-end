@@ -362,7 +362,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
     const channelDetails = await Channel.findById(classDetails.Channel)
       .populate({
         path: 'threads',
-        options: { sort: { datePosted: -1}, limit: 3},
+        options: { sort: { datePosted: -1}, limit: 1},
         populate: {
           path: 'postedBy',
           select: 'fullName ERP email profilePic'
@@ -393,6 +393,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
       },
       channel: {
         latestThreads: latestThreads,
+        channelID: classDetails.Channel,
       },
       latestAnnouncement: latestAnnouncement,
       latestAssignment: latestAssignment,

@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
   },
   profilePic: {
     type: String,
-    default: "https://placeholder.png",
+    default: "https://res.cloudinary.com/dixie2mle/image/upload/v1684248194/profile_pictures/1684248190243-placeholder.png.png",
   },
   //we can store a course with an invalid author, that might be an issue
   courses: [

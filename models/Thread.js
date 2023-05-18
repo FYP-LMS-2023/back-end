@@ -69,6 +69,17 @@ const threadSchema = new mongoose.Schema({
   ],
 });
 
+threadSchema.virtual('upvoteCount').get(function () {
+  return this.upvotes.length;
+});
+
+threadSchema.virtual('downvoteCount').get(function () {
+  return this.downvotes.length;
+});
+
+threadSchema.set('toJSON', { virtuals: true });
+threadSchema.set('toObject', { virtuals: true });
+
 const Thread = new mongoose.model("Thread", threadSchema);
 
 function validateThread(thread) {
@@ -78,8 +89,8 @@ function validateThread(thread) {
     description: Joi.string().min(5).max(1024).required(),
     comments: Joi.array().items(Joi.objectId()).required(),
     tags: Joi.array().items(Joi.string().valid("General", "Homework", "Project", "Exam", "Question", "Other")).default(["General"]).required(),
-    upvotes: Joi.array().items(Joi.objectId()),
-    downvotes: Joi.array().items(Joi.objectId()),
+    upvotes: Joi.array().items(Joi.objectId()).optional(),
+    downvotes: Joi.array().items(Joi.objectId()).optional(),
   });
   return schema.validate(thread);
 }
