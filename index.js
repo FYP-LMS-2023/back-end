@@ -31,7 +31,7 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(
       //"mongodb+srv://vercel-admin-user:admin123@massh.hk78ufw.mongodb.net/test2"
-      "mongodb+srv://saadKarim:admin123@massh.hk78ufw.mongodb.net/test"
+      "mongodb+srv://saadKarim:admin123@massh.hk78ufw.mongodb.net/test1"
     );
     // conn.once("open", () => {
     //   var GFS = Grid(conn.db, mongo);
