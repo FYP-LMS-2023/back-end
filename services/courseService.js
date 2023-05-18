@@ -76,6 +76,34 @@ const {
     }
     res.status(200).send(courses);
   };
+
+  exports.getAllCoursesWithPrograms = async (req, res, next) => {
+    const programs = await Program.find().populate('cores').populate('electives');
+
+    // Array to hold all courses with program details
+    let allCoursesWithPrograms = [];
+  
+    programs.forEach(program => {
+      // Combine cores and electives
+      const programCourses = [...program.cores, ...program.electives];
+     console.log("printing program courses")
+      console.log(programCourses)
+      console.log("printing done")
+  
+      programCourses.forEach(course => {
+        allCoursesWithPrograms.push({
+          courseCode: course.courseCode,
+          courseName: course.courseName,
+          creditHours: course.creditHours,
+          courseDescription: course.courseDescription,
+          programName: program.name,
+          programCode: program.code,
+        });
+      });
+    });
+  
+    res.status(200).send(allCoursesWithPrograms);
+  };
   
   exports.updateCourse = async (req, res, next) => {
     const { error } = validateCourseUpdate(req.body);
