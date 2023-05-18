@@ -286,8 +286,8 @@ exports.createClass = async (req, res, next) => {
       return res.status(400).send({message: "No active semester!"});
     }
 
-    const enrolledClasses = await Classes.find({studentList: studentID})
-      .populate('studentList', 'fullName ERP')
+    const enrolledClasses = await Classes.find({studentList: studentID}).select("-studentList")
+      //.populate('studentList', 'fullName ERP')
       .populate('teacherIDs', 'fullName')
       .populate('TA', 'fullName ERP');
     
@@ -403,6 +403,61 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
     res.status(500).send({ message: "Internal Server Error!" });
   }
 }
+
+exports.getActiveClassesForTeacher = async (req, res, next) => {
+  const teacherID = req.user._id;
+
+  // if(!teacherID){
+  //   return res.status(400).send({message: "Teacher ID is required!"});
+  // }
+  
+  const teacher = await User.findById(teacherID);
+  
+  if(!teacher || teacher.userType != "Faculty"){
+    return res.status(400).send({message: "Teacher does not exist!"});
+  }
+  
+  const currentDate = new Date();
+
+  const activeSemester = await Semester.findOne({
+    //semesterStartDate: { $lte: currentDate },
+    semesterEndDate: { $gte: currentDate },
+  })
+  
+  if(!activeSemester){
+    return res.status(400).send({message: "No active semester!"});
+  }
+
+  const teachingClasses = await Classes.find({teacherIDs: teacherID}).select("-studentList")
+    //.populate('studentList', 'fullName ERP')
+    .populate('teacherIDs', 'fullName')
+    .populate('TA', 'fullName ERP');
+
+  if(!teachingClasses){
+    return res.status(400).send({message: "No teaching classes!"});
+  }
+  
+  const activeClasses = teachingClasses.filter((classObj) => {
+    return classObj.semesterID.toString() == activeSemester._id.toString();
+  });
+
+  const activeClassesWithCourseDetails = await Promise.all(
+    activeClasses.map(async (classObj) => {
+      const course = await Course.findOne({ classes: classObj._id });
+      return {
+        ...classObj.toObject(),
+        courseName: course.courseName,
+        courseCode: course.courseCode,
+        //teachingClasses: teachingClasses,
+      };
+    })
+  );
+
+  res.status(200).send({
+    message: "Active classes received successfully!",
+    activeClasses: activeClassesWithCourseDetails,
+  })
+} 
 
 exports.testClass = async (req, res, next) => {
   
