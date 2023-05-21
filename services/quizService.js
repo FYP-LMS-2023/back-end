@@ -13,8 +13,8 @@ exports.createQuiz = async (req, res, next) => {
     startDate: req.body?.startDate,
     classId: req.body?.classId,
     status: req.body?.status,
-    submissions: req.body.submissions,
-    questions: req.body?.questions,
+    submissions: [],
+    questions: [],
   };
 
   const { error } = validateQuiz(schemaQuiz);
