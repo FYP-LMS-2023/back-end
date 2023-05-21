@@ -61,3 +61,24 @@ exports.getQuiz = async (req, res, next) => {
 
   return res.json(quiz);
 };
+
+exports.getQuizByClassID = async (req, res, next) => {
+  const schema = Joi.object({
+    id: Joi.objectId().required(),
+  });
+  let validation = schema.validate({ id: req.params.id });
+  if (validation.error)
+    return res
+      .status(400)
+      .send({ message: `${validation.error.details[0].message}` });
+
+  const classA = await Classes.findById(req.params.id).populate({
+    path: "Quizzes",
+  });
+
+  if (!classA)
+    return res.status(404).send({ message: "Class with ID not found" });
+
+  //console.log(classA.Quizzes);
+  return res.json(classA.Quizzes);
+};

@@ -386,6 +386,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
 
     res.status(200).send({
       message: "Class details received successfully!",
+      //classID: classID,
       classDetails: {
         course: courseDetails,
         teacher: classDetails.teacherIDs[0],
