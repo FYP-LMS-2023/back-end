@@ -15,13 +15,13 @@ const {
 } = require("../models/AssignmentSubmission.js");
 
 exports.createAssignment = async function (req, res) {
-  console.log("printing headers");
-  console.log(req.headers);
-  console.log("headers printed above");
-  console.log("break");
-  console.log("printing body");
-  console.log(req.body);
-  console.log("body printed above");
+  // console.log("printing headers");
+  // console.log(req.headers);
+  // console.log("headers printed above");
+  // console.log("break");
+  // console.log("printing body");
+  // console.log(req.body);
+  // console.log("body printed above");
   //convert to valid mongoose id
   const classID = req.body.classID;
 
