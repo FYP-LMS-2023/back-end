@@ -15,6 +15,13 @@ const {
 } = require("../models/AssignmentSubmission.js");
 
 exports.createAssignment = async function (req, res) {
+  console.log("printing headers");
+  console.log(req.headers);
+  console.log("headers printed above");
+  console.log("break");
+  console.log("printing body");
+  console.log(req.body);
+  console.log("body printed above");
   //convert to valid mongoose id
   const classID = req.body.classID;
 
@@ -42,7 +49,11 @@ exports.createAssignment = async function (req, res) {
   try {
     let fileDetails = [];
     if (req.files && req.files.length > 0) {
+      console.log(req.files);
       const files = req.files;
+      console.log("testing after shifting to variable");
+      console.log(files);
+
       let totalSize = 0;
       for (const file of files) {
         totalSize += file.size;
@@ -108,11 +119,9 @@ exports.getAssignmentFiles = async function (req, res, next) {
       !classA.studentList.includes(req.user._id) &&
       !classA.teacherIDs.includes(req.user._id)
     ) {
-      return res
-        .status(403)
-        .send({
-          message: "Access denied! => You are not a part of this class",
-        });
+      return res.status(403).send({
+        message: "Access denied! => You are not a part of this class",
+      });
     }
     res.status(200).send({
       message: "Assignment files fetched successfully!",
@@ -168,12 +177,10 @@ exports.submitAssignment = async function (req, res) {
   });
 
   if (existingSubmission) {
-    return res
-      .status(403)
-      .send({
-        message:
-          "Access denied! => You have already submitted this assignment. Please use the resubmitAssignment route to update your submission.",
-      });
+    return res.status(403).send({
+      message:
+        "Access denied! => You have already submitted this assignment. Please use the resubmitAssignment route to update your submission.",
+    });
   }
 
   try {
@@ -255,11 +262,9 @@ exports.resubmitAssignment = async function (req, res) {
   const user = await User.findById(req.user._id);
 
   if (submission.studentID.toString() !== req.user._id.toString()) {
-    return res
-      .status(403)
-      .send({
-        message: "Access denied! => You are not the owner of this submission",
-      });
+    return res.status(403).send({
+      message: "Access denied! => You are not the owner of this submission",
+    });
   }
 
   try {
@@ -330,11 +335,9 @@ exports.getAssignment = async function (req, res, next) {
       return res.status(400).send({ message: "Class not found" });
     }
     if (!classA.studentList.includes(req.user._id)) {
-      return res
-        .status(403)
-        .send({
-          message: "Access denied! => You are not a part of this class",
-        });
+      return res.status(403).send({
+        message: "Access denied! => You are not a part of this class",
+      });
     }
     res.status(200).send({
       message: "Assignment fetched successfully!",
@@ -361,11 +364,9 @@ exports.getAssignmentSubmissions = async function (req, res) {
   }
 
   if (!classA.teacherIDs.includes(req.user._id)) {
-    return res
-      .status(403)
-      .send({
-        message: "Access denied! => You are not a teacher of this class",
-      });
+    return res.status(403).send({
+      message: "Access denied! => You are not a teacher of this class",
+    });
   }
 
   try {
@@ -417,11 +418,9 @@ exports.gradeAssignmentSubmission = async function (req, res) {
   }
 
   if (!classA.teacherIDs.includes(req.user._id)) {
-    return res
-      .status(403)
-      .send({
-        message: "Access denied! => You are not a teacher of this class",
-      });
+    return res.status(403).send({
+      message: "Access denied! => You are not a teacher of this class",
+    });
   }
 
   if (!req.body.marksReceived) {
@@ -431,11 +430,9 @@ exports.gradeAssignmentSubmission = async function (req, res) {
   }
 
   if (req.body.marksReceived > assignment.marks) {
-    return res
-      .status(400)
-      .send({
-        message: "Marks received cannot be greater than the total marks",
-      });
+    return res.status(400).send({
+      message: "Marks received cannot be greater than the total marks",
+    });
   }
 
   submission.marksReceived = req.body?.marksReceived;
@@ -463,12 +460,10 @@ exports.getAllClassAssignments = async function (req, res) {
     !classA.teacherIDs.includes(req.user._id) &&
     !classA.studentList.includes(req.user._id)
   ) {
-    return res
-      .status(403)
-      .send({
-        message:
-          "Access denied! => You are not a teacher or student of this class",
-      });
+    return res.status(403).send({
+      message:
+        "Access denied! => You are not a teacher or student of this class",
+    });
   }
 
   try {
@@ -509,12 +504,10 @@ exports.getAssignmentById = async function (req, res) {
     !classA.teacherIDs.includes(req.user._id) &&
     !classA.studentList.includes(req.user._id)
   ) {
-    return res
-      .status(403)
-      .send({
-        message:
-          "Access denied! => You are not a teacher or student of this class",
-      });
+    return res.status(403).send({
+      message:
+        "Access denied! => You are not a teacher or student of this class",
+    });
   }
 
   return res.status(200).send({
@@ -542,11 +535,9 @@ exports.getAssignmentDetailsStudent = async function (req, res) {
   }
 
   if (!classA.studentList.includes(req.user._id)) {
-    return res
-      .status(403)
-      .send({
-        message: "Access denied! => You are not a student of this class",
-      });
+    return res.status(403).send({
+      message: "Access denied! => You are not a student of this class",
+    });
   }
 
   const ass2 = await Assignment.findById(id).populate("submissions");
