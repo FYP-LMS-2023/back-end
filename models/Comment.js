@@ -7,15 +7,15 @@ const commentSchema = new mongoose.Schema({
   comment: {
     type: String,
     required: true,
-    minlength: 1,
+    minlength: [1, "Comment must have a minimum length of 5 characters."],
+    maxlength: [4096, "Comment must not exceed 4096 characters."],
     validate: {
       validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
+        // Check if the value does not consist only of white space characters
+        return /^\s*$/.test(value) === false;
       },
       message: "Only white space characters are not allowed.",
     },
-    maxlength: 4096,
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,

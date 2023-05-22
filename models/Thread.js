@@ -21,15 +21,15 @@ const threadSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
+    minlength: [1, "Thread title must have a minimum length of 5 characters."],
+    maxlength: [255, "Thread title must not exceed 255 characters."],
     validate: {
       validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
+        // Check if the value does not consist only of white space characters
+        return /^\s*$/.test(value) === false;
       },
       message: "Only white space characters are not allowed.",
     },
-    minlength: 5,
-    maxlength: 255,
   },
   description: {
     type: String,
@@ -37,12 +37,15 @@ const threadSchema = new mongoose.Schema({
     validate: {
       validator: function (value) {
         // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
+        return !/^\s*$/.test(value);
       },
       message: "Only white space characters are not allowed.",
     },
-    minlength: 1,
-    maxlength: 4096,
+    minlength: [
+      1,
+      "Thread description must have a minimum length of 5 characters.",
+    ],
+    maxlength: [4096, "Thread description must not exceed 4096 characters."],
   },
   datePosted: {
     type: Date,

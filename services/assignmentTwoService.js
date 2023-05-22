@@ -52,57 +52,62 @@ exports.createAssignment = async function (req, res) {
   //convert to year format
   var useDate = moment(req.body.dueDate, "DD-MM-YYYYTHH:mm:ss.SSS[Z]");
 
-  try {
-    let fileDetails = [];
-    if (req.files && req.files.length > 0) {
-      // console.log(req.files);
-      // const files = req.files;
-      // console.log("testing after shifting to variable");
-      // console.log(files);
+  // try {
+  let fileDetails = [];
+  if (req.files && req.files.length > 0) {
+    // console.log(req.files);
+    const files = req.files;
+    // console.log("testing after shifting to variable");
+    // console.log(files);
 
-      let totalSize = 0;
-      for (const file of files) {
-        totalSize += file.size;
-      }
-      if (totalSize > 1024 * 1024 * 20) {
-        return res
-          .status(400)
-          .send({ message: "Total file size should be less than 20MB!" });
-      }
-
-      fileDetails = files.map((file) => ({
-        url: file.path,
-        public_id: file.filename,
-        format: file.format,
-      }));
+    let totalSize = 0;
+    for (const file of files) {
+      totalSize += file.size;
+    }
+    if (totalSize > 1024 * 1024 * 20) {
+      return res
+        .status(400)
+        .send({ message: "Total file size should be less than 20MB!" });
     }
 
-    const assignment = new Assignment({
-      title: req.body.title,
-      description: req.body.description,
-      dueDate: useDate,
-      uploadDate: Date.now(),
-      status: "active",
-      marks: req.body.marks,
-      files: fileDetails,
-    });
-
-    const result = await assignment.save();
-    if (!result) {
-      return res.status(500).send({ message: "Something went wrong!" });
-    }
-
-    classA.Assignments.push(result._id);
-    await classA.save();
-
-    res.status(200).send({
-      message: "Assignment created successfully!",
-      assignment: result,
-    });
-  } catch (ex) {
-    console.log(ex);
-    res.status(500).send({ message: "Something went wrong!" });
+    fileDetails = files.map((file) => ({
+      url: file.path,
+      public_id: file.filename,
+      format: file.format,
+    }));
   }
+
+  const assignment = new Assignment({
+    title: req.body.title,
+    description: req.body.description,
+    dueDate: useDate,
+    uploadDate: Date.now(),
+    status: "active",
+    marks: req.body.marks,
+    files: fileDetails,
+  });
+
+  // const { error } = validateAssignment(assignment);
+  // if (error) {
+  //   return res.status(400).send({ message: error.details[0].message });
+  // }
+
+  const result = await assignment.save();
+  if (!result) {
+    return res.status(500).send({ message: "Something went wrong!" });
+  }
+
+  classA.Assignments.push(result._id);
+  await classA.save();
+
+  res.status(200).send({
+    message: "Assignment created successfully!",
+    assignment: result,
+  });
+  // } catch (ex) {
+  //   console.log(ex);
+  //   res.status(500).send({ message: "Something went wrong!" });
+  // }
 };
 
 exports.getAssignmentFiles = async function (req, res, next) {

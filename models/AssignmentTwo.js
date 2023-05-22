@@ -16,14 +16,13 @@ const assignment2Schema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 255,
+    minlength: [5, "Title must have a minimum length of 5 characters."],
+    maxlength: [255, "Title must not exceed 255 characters."],
     validate: {
       validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
+        // Check if the value does not consist only of white space characters
+        return /^\s*$/.test(value) === false;
       },
-      message: "Only white space characters are not allowed.",
     },
   },
   status: {
@@ -34,15 +33,15 @@ const assignment2Schema = new mongoose.Schema({
   description: {
     type: String,
     //required: true,
-    minlength: 0,
-    maxlength: 1024,
+    minlength: [0, "Description must have a minimum length of 0 characters."],
+    maxlength: [1024, "Description must not exceed 1024 characters."],
     default: "No description provided by the instructor.",
     validate: {
       validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
+        // Check if the value does not consist only of white space characters
+        return /^\s*$/.test(value) === false;
       },
-      message: "Only white space characters are not allowed.",
+      message: "Description must not consist only of white space characters.",
     },
   },
   marks: {
@@ -87,16 +86,28 @@ function validateAssignment(assignment) {
   const schema = Joi.object({
     uploadDate: Joi.date(),
     dueDate: Joi.date().required(),
-    title: Joi.string().required(),
+    title: Joi.string()
+      .min(5)
+      .max(255)
+      .pattern(/(.|\s)*\S(.|\s)*/)
+      .not()
+      .message("Title must not consist only of white space characters.")
+      .required(),
     status: Joi.string().valid("active", "closed", "deleted").required(),
-    description: Joi.string().required(),
+    description: Joi.string()
+      .min(0)
+      .max(1024)
+      .pattern(/(.|\s)*\S(.|\s)*/)
+      .not()
+      .message("Description must not consist only of white space characters.")
+      .required(),
     files: Joi.array().items(
       Joi.object({
         url: Joi.string().required(),
         public_id: Joi.string().required(),
-      })
+      }).unknown(true)
     ),
-    submissions: Joi.array().items(Joi.objectId().required()),
+    //submissions: Joi.array().items(Joi.objectId().required()).optional(),
   });
 
   return schema.validate(assignment);
@@ -105,9 +116,21 @@ function validateAssignment(assignment) {
 function validateAssignmentUpdate(assignment) {
   const schema = Joi.object({
     dueDate: Joi.date().empty(""),
-    title: Joi.string().empty(""),
+    title: Joi.string()
+      .min(5)
+      .max(255)
+      .pattern(/(.|\s)*\S(.|\s)*/)
+      .not()
+      .message("Title must not consist only of white space characters.")
+      .empty(""),
     status: Joi.string().valid("active", "closed", "deleted").empty(""),
-    description: Joi.string().empty(""),
+    description: Joi.string()
+      .min(1) // Minimum length of 1 to ensure it's not empty
+      .max(1024)
+      .pattern(/(.|\s)*\S(.|\s)*/)
+      .not()
+      .message("Description must not consist only of white space characters.")
+      .empty(""),
     marks: Joi.number().empty(""),
   })
     .or("dueDate", "title", "status", "description", "marks")
