@@ -482,7 +482,7 @@ exports.getAllClassAssignments = async function (req, res) {
     const classData = await Classes.findById(id).populate({
       path: "Assignments",
       match: { deleteFlag: false },
-      options: { sort: { datePosted: -1 } },
+      options: { sort: { uploadDate: -1 } },
     });
     if (!classData) {
       return res.status(400).send({ message: "Class not found" });
