@@ -340,6 +340,7 @@ exports.getClassDetailsShaheer = async (req, res, next) => {
       })
       .populate({
         path: "Assignments",
+        match: { deleteFlag: false },
         options: { sort: { uploadDate: -1 }, limit: 1 },
       })
       .populate({

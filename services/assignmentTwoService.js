@@ -3,7 +3,14 @@ const { Channel, validateChannel } = require("../models/Channel.js");
 const { Attendance } = require("../models/Attendance.js");
 const { Announcement } = require("../models/Announcement.js");
 
-const { Assignment } = require("../models/AssignmentTwo.js");
+const cloudinary = require("cloudinary").v2;
+
+const {
+  Assignment,
+  validateAssignment,
+  validateAssignmentUpdate,
+} = require("../models/AssignmentTwo.js");
+
 const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
 const mongoose = require("mongoose");
@@ -15,7 +22,6 @@ const {
 } = require("../models/AssignmentSubmission.js");
 
 exports.createAssignment = async function (req, res) {
-  // console.log("printing headers");
   // console.log(req.headers);
   // console.log("headers printed above");
   // console.log("break");
@@ -49,10 +55,10 @@ exports.createAssignment = async function (req, res) {
   try {
     let fileDetails = [];
     if (req.files && req.files.length > 0) {
-      console.log(req.files);
-      const files = req.files;
-      console.log("testing after shifting to variable");
-      console.log(files);
+      // console.log(req.files);
+      // const files = req.files;
+      // console.log("testing after shifting to variable");
+      // console.log(files);
 
       let totalSize = 0;
       for (const file of files) {
@@ -452,23 +458,25 @@ exports.getAllClassAssignments = async function (req, res) {
   if (!id) {
     return res.status(400).send({ message: "Class ID is required!" });
   }
+
   const classA = await Classes.findById(id);
   if (!classA) {
     return res.status(400).send({ message: "Invalid class ID!" });
   }
+
   if (
     !classA.teacherIDs.includes(req.user._id) &&
     !classA.studentList.includes(req.user._id)
   ) {
     return res.status(403).send({
-      message:
-        "Access denied! => You are not a teacher or student of this class",
+      message: "Access denied! You are not a teacher or student of this class",
     });
   }
 
   try {
     const classData = await Classes.findById(id).populate({
       path: "Assignments",
+      match: { deleteFlag: false },
     });
     if (!classData) {
       return res.status(400).send({ message: "Class not found" });
@@ -481,7 +489,7 @@ exports.getAllClassAssignments = async function (req, res) {
     console.log(ex);
     res
       .status(500)
-      .send({ message: "Something went wrong! => Exception detected" });
+      .send({ message: "Something went wrong! Exception detected" });
   }
 };
 
@@ -491,10 +499,11 @@ exports.getAssignmentById = async function (req, res) {
     return res.status(400).send({ message: "Assignment ID is required!" });
   }
 
-  const ass1 = await Assignment.findById(id);
+  const ass1 = await Assignment.findOne({ _id: id, deleteFlag: false });
   if (!ass1) {
     return res.status(400).send({ message: "Invalid assignment ID!" });
   }
+
   const classA = await Classes.findOne({ Assignments: id });
   if (!classA) {
     return res.status(400).send({ message: "Class not found" });
@@ -505,8 +514,7 @@ exports.getAssignmentById = async function (req, res) {
     !classA.studentList.includes(req.user._id)
   ) {
     return res.status(403).send({
-      message:
-        "Access denied! => You are not a teacher or student of this class",
+      message: "Access denied! You are not a teacher or student of this class",
     });
   }
 
@@ -553,5 +561,180 @@ exports.getAssignmentDetailsStudent = async function (req, res) {
     message: "Assignment details fetched successfully!",
     assignment: ass1,
     isSubmitted: isSubmitted,
+  });
+};
+
+exports.updateAssignment = async function (req, res) {
+  const { id } = req.params;
+
+  //chek to see if only {} is sent in body
+  if (Object.keys(req.body).length === 0) {
+    return res.status(400).send({ message: "No data sent in body!" });
+  }
+
+  if (!id) {
+    return res.status(400).send({ message: "Assignment ID is required!" });
+  }
+
+  const { error } = validateAssignmentUpdate(req.body);
+  if (error) {
+    return res.status(400).send({ message: error.details[0].message });
+  }
+
+  const assignment = await Assignment.findById(id);
+  if (!assignment) {
+    return res.status(400).send({ message: "Invalid assignment ID!" });
+  }
+  const classA = await Classes.findOne({ Assignments: id });
+  if (!classA) {
+    return res.status(400).send({ message: "Class not found" });
+  }
+
+  if (!classA.teacherIDs.includes(req.user._id)) {
+    return res.status(403).send({
+      message: "Access denied! => You are not a teacher of this class",
+    });
+  }
+
+  if (req.body.dueDate) {
+    if (req.body.dueDate < Date.now()) {
+      return res
+        .status(400)
+        .send({ message: "Due date cannot be less than current date" });
+    }
+    assignment.dueDate = req.body.dueDate;
+  }
+
+  if (req.body.marks) {
+    assignment.marks = req.body.marks;
+  }
+
+  if (req.body.description) {
+    assignment.description = req.body.description;
+  }
+
+  if (req.body.title) {
+    assignment.title = req.body.title;
+  }
+
+  if (req.body.status) {
+    assignment.status = req.body.status;
+  }
+
+  await assignment.save();
+  res.status(200).send({
+    message: "Assignment updated successfully!",
+    assignment: assignment,
+  });
+};
+
+exports.removeFileByIndexFromAssignment = async function (req, res) {
+  const { id } = req.params;
+  const { index } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Assignment ID is required!" });
+  }
+  if (!index) {
+    return res.status(400).send({ message: "Index is required!" });
+  }
+  const assignment = await Assignment.findById(id);
+  if (!assignment) {
+    return res.status(400).send({ message: "Invalid assignment ID!" });
+  }
+  const classA = await Classes.findOne({ Assignments: id });
+  if (!classA) {
+    return res.status(400).send({ message: "Class not found" });
+  }
+  if (!classA.teacherIDs.includes(req.user._id)) {
+    return res.status(403).send({
+      message: "Access denied! => You are not a teacher of this class",
+    });
+  }
+  if (index >= 0 && index < assignment.files.length) {
+    const file = assignment.files[index];
+    await cloudinary.uploader.destroy(file.public_id);
+    assignment.files.splice(index, 1);
+    await assignment.save();
+    res.status(200).send({
+      message: "File removed successfully!",
+      assignment: assignment,
+    });
+  } else {
+    return res.status(400).send({ message: "Invalid index!" });
+  }
+};
+
+exports.addFileToAssignment = async function (req, res) {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Assignment ID is required!" });
+  }
+  const assignment = await Assignment.findById(id);
+  if (!assignment) {
+    return res.status(400).send({ message: "Invalid assignment ID!" });
+  }
+  const classA = await Classes.findOne({ Assignments: id });
+  if (!classA) {
+    return res.status(400).send({ message: "Class not found" });
+  }
+  if (!classA.teacherIDs.includes(req.user._id)) {
+    return res.status(403).send({
+      message: "Access denied! => You are not a teacher of this class",
+    });
+  }
+  // console.log(req.files);
+  // const files = req.files;
+  // console.log(files);
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send({ message: "No file uploaded!" });
+  }
+
+  let totalSize = 0;
+  for (const file of files) {
+    totalSize += file.size;
+  }
+  if (totalSize > 1024 * 20 * 1024) {
+    return res
+      .status(400)
+      .send({ message: "Total file size should be less than 20MB!" });
+  }
+
+  const fileDetails = files.map((file) => {
+    return { url: file.path, public_id: file.filename };
+  });
+  assignment.files.push(...fileDetails);
+
+  await assignment.save();
+  res.status(200).send({
+    message: "Files added successfully!",
+    assignment: assignment,
+  });
+};
+
+exports.setAssignmentDeleteFlag = async function (req, res) {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Assignment ID is required!" });
+  }
+
+  const assignment = await Assignment.findById(id);
+  if (!assignment) {
+    return res.status(400).send({ message: "Invalid assignment ID!" });
+  }
+
+  const classA = await Classes.findOne({ Assignments: id });
+  if (!classA) {
+    return res.status(400).send({ message: "Class not found" });
+  }
+  if (!classA.teacherIDs.includes(req.user._id)) {
+    return res.status(403).send({
+      message: "Access denied! => You are not a teacher of this class",
+    });
+  }
+  assignment.deleteFlag = !assignment.deleteFlag;
+  await assignment.save();
+  res.status(200).send({
+    message: "Assignment deleted successfully!",
+    assignment: assignment,
   });
 };

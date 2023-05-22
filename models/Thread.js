@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi)
+Joi.objectId = require("joi-objectid")(Joi);
 require("dotenv").config();
-
 
 const { User } = require("./User");
 const { Comment } = require("./Comment");
@@ -22,10 +21,28 @@ const threadSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
+    minlength: 5,
+    maxlength: 255,
   },
   description: {
     type: String,
     required: true,
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
+    minlength: 1,
+    maxlength: 4096,
   },
   datePosted: {
     type: Date,
@@ -59,26 +76,26 @@ const threadSchema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-    }
+    },
   ],
   downvotes: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-    }
+    },
   ],
 });
 
-threadSchema.virtual('upvoteCount').get(function () {
+threadSchema.virtual("upvoteCount").get(function () {
   return this.upvotes.length;
 });
 
-threadSchema.virtual('downvoteCount').get(function () {
+threadSchema.virtual("downvoteCount").get(function () {
   return this.downvotes.length;
 });
 
-threadSchema.set('toJSON', { virtuals: true });
-threadSchema.set('toObject', { virtuals: true });
+threadSchema.set("toJSON", { virtuals: true });
+threadSchema.set("toObject", { virtuals: true });
 
 const Thread = new mongoose.model("Thread", threadSchema);
 
@@ -88,7 +105,19 @@ function validateThread(thread) {
     title: Joi.string().min(5).max(128).required(),
     description: Joi.string().min(5).max(1024).required(),
     comments: Joi.array().items(Joi.objectId()).required(),
-    tags: Joi.array().items(Joi.string().valid("General", "Homework", "Project", "Exam", "Question", "Other")).default(["General"]).required(),
+    tags: Joi.array()
+      .items(
+        Joi.string().valid(
+          "General",
+          "Homework",
+          "Project",
+          "Exam",
+          "Question",
+          "Other"
+        )
+      )
+      .default(["General"])
+      .required(),
     upvotes: Joi.array().items(Joi.objectId()).optional(),
     downvotes: Joi.array().items(Joi.objectId()).optional(),
   });
@@ -97,5 +126,5 @@ function validateThread(thread) {
 
 module.exports = {
   Thread,
-  validateThread
-}
+  validateThread,
+};

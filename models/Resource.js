@@ -2,8 +2,6 @@ const mongoose = require("mongoose");
 const Joi = require("joi");
 require("dotenv").config();
 
-
-
 const resourceSchema = new mongoose.Schema({
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,26 +23,42 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 5,
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
+    maxlength: 255,
     //default: "Untitled",
   },
   description: {
     type: String,
     //required: true,
     minlength: 5,
+    maxlength: 4096,
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
   },
   files: [
     {
       url: {
         type: String,
-        required: true
+        required: true,
       },
       public_id: {
         type: String,
-        required: true
-      }
-    }
+        required: true,
+      },
+    },
   ],
-})
+});
 
 // const resourceSchema = new mongoose.Schema({
 //   uploadedBy: {
@@ -91,16 +105,15 @@ function validateResource(resource) {
     previewName: Joi.string(),
     file: Joi.object({
       url: Joi.string().required(),
-      public_id: Joi.string().required()
+      public_id: Joi.string().required(),
     }).required(),
-    teacherID: Joi.objectId().required()
+    teacherID: Joi.objectId().required(),
   });
 
   return schema.validate(resource);
 }
 
-
 module.exports = {
   Resource,
-  validateResource,  
-}
+  validateResource,
+};

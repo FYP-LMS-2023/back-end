@@ -16,6 +16,15 @@ const assignment2Schema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
+    minlength: 5,
+    maxlength: 255,
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
   },
   status: {
     type: String,
@@ -24,11 +33,22 @@ const assignment2Schema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true,
+    //required: true,
+    minlength: 0,
+    maxlength: 1024,
+    default: "No description provided by the instructor.",
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
   },
   marks: {
     type: Number,
     required: true,
+    default: 0,
   },
   files: [
     {
@@ -55,6 +75,10 @@ const assignment2Schema = new mongoose.Schema({
       },
     },
   ],
+  deleteFlag: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Assignment = mongoose.model("AssignmentTwo", assignment2Schema);
@@ -78,7 +102,22 @@ function validateAssignment(assignment) {
   return schema.validate(assignment);
 }
 
+function validateAssignmentUpdate(assignment) {
+  const schema = Joi.object({
+    dueDate: Joi.date().empty(""),
+    title: Joi.string().empty(""),
+    status: Joi.string().valid("active", "closed", "deleted").empty(""),
+    description: Joi.string().empty(""),
+    marks: Joi.number().empty(""),
+  })
+    .or("dueDate", "title", "status", "description", "marks")
+    .min(1);
+
+  return schema.validate(assignment);
+}
+
 module.exports = {
   Assignment,
   validateAssignment,
+  validateAssignmentUpdate,
 };

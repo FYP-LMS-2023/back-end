@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi)
+Joi.objectId = require("joi-objectid")(Joi);
 
 require("dotenv").config();
-
 
 //I want to write a schema for courses
 
@@ -24,6 +23,15 @@ const courseSchema = new mongoose.Schema({
   courseDescription: {
     type: String,
     required: true,
+    validate: {
+      validator: function (value) {
+        // Check if the value contains only white space characters
+        return /^\s*$/.test(value);
+      },
+      message: "Only white space characters are not allowed.",
+    },
+    minlength: 5,
+    maxlength: 2048,
   },
   classes: [
     {
@@ -59,10 +67,10 @@ function validateCourseUpdate(course) {
     courseDescription: Joi.string().trim().min(1),
   }).min(1); // require at least one field to be present
   return schema.validate(course);
-} 
+}
 
 module.exports = {
   Course,
   validateCourse,
   validateCourseUpdate,
-}
+};
