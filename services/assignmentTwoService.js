@@ -148,7 +148,7 @@ exports.submitAssignment = async function (req, res) {
   const { id } = req.params;
 
   // Check if submissionDescription is provided and not empty
-  if (req.body.hasOwnProperty("submissionDescription")) {
+  if (req.body.submissionDescription) {
     const submissionDescription = req.body.submissionDescription.trim();
     if (submissionDescription.length === 0) {
       return res
