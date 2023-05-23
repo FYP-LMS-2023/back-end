@@ -147,51 +147,49 @@ exports.getAssignmentFiles = async function (req, res, next) {
 exports.submitAssignment = async function (req, res) {
   const { id } = req.params;
 
-  //check if you have sent submission description make sure it is not empty
-  if (
-    "submissionDescription" in req.body &&
-    req.body.submissionDescription.trim().length === 0
-  ) {
-    return res
-      .status(400)
-      .send({ message: "Description, if provided, cannot be empty" });
+  // Check if submissionDescription is provided and not empty
+  if (req.body.hasOwnProperty("submissionDescription")) {
+    const submissionDescription = req.body.submissionDescription.trim();
+    if (submissionDescription.length === 0) {
+      return res
+        .status(400)
+        .send({ message: "Description, if provided, cannot be empty" });
+    }
   }
 
   if (!id) {
     return res.status(400).send({ message: "Assignment ID is required!" });
   }
+
   const assignment = await Assignment.findById(id);
   if (!assignment) {
     return res.status(400).send({ message: "Invalid assignment ID!" });
   }
+
   const user = await User.findById(req.user._id);
   const classA = await Classes.findOne({ Assignments: id });
   if (!classA) {
     return res.status(400).send({ message: "Class not found" });
   }
+
   if (!classA.studentList.includes(req.user._id)) {
     return res
       .status(403)
       .send({ message: "Access denied! => You are not a part of this class" });
   }
+
   if (assignment.status !== "active") {
     return res
       .status(403)
       .send({ message: "Access denied! => Assignment is not active" });
   }
+
   const nowDate = Date.now();
   if (nowDate > assignment.dueDate) {
     return res
       .status(403)
       .send({ message: "Access denied! => Assignment deadline has passed" });
   }
-
-  /*const userSubmissions = await AssignmentSubmission.find({ studentID: req.user._id });
-    const hasSubmitted = assignment.submissions.some(submissionId => userSubmissions.find(submission => submission._id.toString() === submissionId.toString()));
-
-    if (hasSubmitted) {
-        return res.status(403).send({ message: "Access denied! => You have already submitted this assignment. Please use the resubmitAssignment route to update your submission." });
-    } */
 
   const existingSubmission = await AssignmentSubmission.findOne({
     studentID: req.user._id,
@@ -207,25 +205,24 @@ exports.submitAssignment = async function (req, res) {
 
   try {
     const files = req.files;
-    if (!files || files.length == 0) {
-      return res.status(400).send({ message: "No files uploaded!" });
-    }
+    let fileDetails = [];
+    if (files && files.length > 0) {
+      let totalSize = 0;
+      for (const file of files) {
+        totalSize += file.size;
+      }
+      if (totalSize > 1024 * 1024 * 20) {
+        return res
+          .status(400)
+          .send({ message: "Total file size should be less than 20MB!" });
+      }
 
-    let totalSize = 0;
-    for (const file of files) {
-      totalSize += file.size;
+      fileDetails = files.map((file) => ({
+        url: file.path,
+        public_id: file.filename,
+        format: file.format,
+      }));
     }
-    if (totalSize > 1024 * 1024 * 20) {
-      return res
-        .status(400)
-        .send({ message: "Total file size should be less than 20MB!" });
-    }
-
-    const fileDetails = files.map((file) => ({
-      url: file.path,
-      public_id: file.filename,
-      format: file.format,
-    }));
 
     const submission = new AssignmentSubmission({
       uploadDate: Date.now(),
@@ -265,7 +262,9 @@ exports.resubmitAssignment = async function (req, res) {
   }
   const submission = await AssignmentSubmission.findById(id);
   if (!submission) {
-    return res.status(400).send({ message: "Invalid assignment ID!" });
+    return res
+      .status(400)
+      .send({ message: "Invalid assignment submission ID!" });
   }
 
   const assignment = await Assignment.findOne({ submissions: submission._id });
@@ -291,25 +290,24 @@ exports.resubmitAssignment = async function (req, res) {
 
   try {
     const files = req.files;
-    if (!files || files.length == 0) {
-      return res.status(400).send({ message: "No files uploaded!" });
-    }
+    let fileDetails = [];
+    if (files && files.length > 0) {
+      let totalSize = 0;
+      for (const file of files) {
+        totalSize += file.size;
+      }
+      if (totalSize > 1024 * 1024 * 20) {
+        return res
+          .status(400)
+          .send({ message: "Total file size should be less than 20MB!" });
+      }
 
-    let totalSize = 0;
-    for (const file of files) {
-      totalSize += file.size;
+      fileDetails = files.map((file) => ({
+        url: file.path,
+        public_id: file.filename,
+        format: file.format,
+      }));
     }
-    if (totalSize > 1024 * 1024 * 20) {
-      return res
-        .status(400)
-        .send({ message: "Total file size should be less than 20MB!" });
-    }
-
-    const fileDetails = files.map((file) => ({
-      url: file.path,
-      public_id: file.filename,
-      format: file.format,
-    }));
 
     // Find existing submissions and remove them from the assignment's submissions array
 
@@ -387,13 +385,14 @@ exports.getAssignmentSubmissions = async function (req, res) {
 
   if (!classA.teacherIDs.includes(req.user._id)) {
     return res.status(403).send({
-      message: "Access denied! => You are not a teacher of this class",
+      message: "Access denied! You are not a teacher of this class",
     });
   }
 
   try {
     const returnAssignment = await Assignment.findById(id).populate({
       path: "submissions",
+      options: { sort: { uploadDate: -1 } }, // Sort by uploadDate in descending order
       populate: {
         path: "studentID",
         select: "fullName email ERP",
@@ -412,7 +411,7 @@ exports.getAssignmentSubmissions = async function (req, res) {
     console.log(ex);
     res
       .status(500)
-      .send({ message: "Something went wrong! => Exception detected" });
+      .send({ message: "Something went wrong! Exception detected" });
   }
 };
 
@@ -541,16 +540,52 @@ exports.getAssignmentById = async function (req, res) {
   });
 };
 
+// exports.getAssignmentDetailsStudent = async function (req, res) {
+//   const { id } = req.params;
+//   if (!id) {
+//     return res.status(400).send({ message: "Assignment ID is required!" });
+//   }
+
+//   const ass1 = await Assignment.findById(id);
+//   if (!ass1) {
+//     return res.status(400).send({ message: "Invalid assignment ID!" });
+//   }
+
+//   const classA = await Classes.findOne({ Assignments: id });
+//   if (!classA) {
+//     return res.status(400).send({ message: "Class not found" });
+//   }
+
+//   if (!classA.studentList.includes(req.user._id)) {
+//     return res.status(403).send({
+//       message: "Access denied! => You are not a student of this class",
+//     });
+//   }
+
+//   const ass2 = await Assignment.findById(id).populate("submissions");
+
+//   for (let submission of ass2.submissions) {
+//     if (submission.studentID == req.user._id) {
+//       isSubmitted = true;
+//       break;
+//     }
+//   }
+
+//   res.status(200).send({
+//     message: "Assignment details fetched successfully!",
+//     assignment: ass1,
+//     isSubmitted: isSubmitted,
+//   });
+// };
+
 exports.getAssignmentDetailsStudent = async function (req, res) {
   const { id } = req.params;
   if (!id) {
     return res.status(400).send({ message: "Assignment ID is required!" });
   }
 
-  var isSubmitted = false;
-
-  const ass1 = await Assignment.findById(id);
-  if (!ass1) {
+  const assignment = await Assignment.findById(id);
+  if (!assignment) {
     return res.status(400).send({ message: "Invalid assignment ID!" });
   }
 
@@ -561,23 +596,24 @@ exports.getAssignmentDetailsStudent = async function (req, res) {
 
   if (!classA.studentList.includes(req.user._id)) {
     return res.status(403).send({
-      message: "Access denied! => You are not a student of this class",
+      message: "Access denied! You are not a student of this class",
     });
   }
 
-  const ass2 = await Assignment.findById(id).populate("submissions");
+  const submission = await AssignmentSubmission.findOne({
+    studentID: req.user._id,
+    _id: { $in: assignment.submissions },
+  });
 
-  for (let submission of ass2.submissions) {
-    if (submission.studentID == req.user._id) {
-      isSubmitted = true;
-      break;
-    }
+  if (submission) {
+    var isSubmitted = true;
   }
 
   res.status(200).send({
     message: "Assignment details fetched successfully!",
-    assignment: ass1,
-    isSubmitted: isSubmitted,
+    assignment: assignment,
+    mySubmission: submission || null,
+    isSubmitted: isSubmitted || false,
   });
 };
 
