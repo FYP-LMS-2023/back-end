@@ -689,7 +689,7 @@ exports.addFileToAssignment = async function (req, res) {
     });
   }
   // console.log(req.files);
-  // const files = req.files;
+  const files = req.files;
   // console.log(files);
   if (!req.files || req.files.length === 0) {
     return res.status(400).send({ message: "No file uploaded!" });
