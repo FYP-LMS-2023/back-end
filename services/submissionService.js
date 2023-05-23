@@ -53,7 +53,7 @@ exports.submitQuiz = async (req, res, next) => {
     studentID: req.user._id,
     submittedFor: req.body?.submittedFor,
   });
-  if (currSubmission.length != 0)
+  if (currSubmission.length !== 0)
     return res.status(403).send({ message: "Quiz already submitted." });
 
   const resultQuiz = await Quiz.findById(schemaQuizSubmission.submittedFor);
@@ -61,22 +61,31 @@ exports.submitQuiz = async (req, res, next) => {
   if (!resultQuiz)
     return res.status(400).send({ message: "Quiz was not found!" });
 
+  if (resultQuiz.startDate > Date.now()) {
+    return res.status(400).send({
+      message: "Quiz has not started yet. You can't make any submissions yet",
+    });
+  }
+
   const marksCalculated = await addingMarks(resultQuiz, schemaQuizSubmission);
 
-  console.log(marksCalculated);
   schemaQuizSubmission.marksReceived = marksCalculated;
 
-  let quizSubmission = new QuizSubmission(schemaQuizSubmission)
-  
+  let quizSubmission = new QuizSubmission(schemaQuizSubmission);
 
   const result = await quizSubmission.save();
-  
-  //populted result
-  const populatedQuizSubmission = await QuizSubmission.findById(result._id)
-  .populate([
+
+  // Add the submitted quiz to the quiz's submissions
+  resultQuiz.submissions.push(result._id);
+  await resultQuiz.save();
+
+  // Populated result
+  const populatedQuizSubmission = await QuizSubmission.findById(
+    result._id
+  ).populate([
     {
       path: "studentID",
-      select: "name email",
+      select: "fullName email profilePic",
     },
     {
       path: "submittedFor",
@@ -84,10 +93,10 @@ exports.submitQuiz = async (req, res, next) => {
         path: "questions",
         select: "questionDescription marks",
         populate: {
-          path: 'answers',
-          select: 'answerDescription'
-        } 
-      }
+          path: "answers",
+          select: "answerDescription",
+        },
+      },
     },
     {
       path: "submission.question",
@@ -96,7 +105,7 @@ exports.submitQuiz = async (req, res, next) => {
     {
       path: "submission.answer",
       select: "answerDescription",
-    }
+    },
   ]);
 
   return res.json(populatedQuizSubmission);

@@ -23,28 +23,28 @@ const resourceSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 5,
-    validate: {
-      validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
-      },
-      message: "Only white space characters are not allowed.",
-    },
+    // validate: {
+    //   validator: function (value) {
+    //     // Check if the value contains only white space characters
+    //     return /^\s*$/.test(value);
+    //   },
+    //   message: "Only white space characters are not allowed.",
+    // },
     maxlength: 255,
-    //default: "Untitled",
+    default: "Untitled",
   },
   description: {
     type: String,
     //required: true,
     minlength: 5,
     maxlength: 4096,
-    validate: {
-      validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
-      },
-      message: "Only white space characters are not allowed.",
-    },
+    // validate: {
+    //   validator: function (value) {
+    //     // Check if the value contains only white space characters
+    //     return /^\s*$/.test(value);
+    //   },
+    //   message: "Only white space characters are not allowed.",
+    // },
   },
   files: [
     {

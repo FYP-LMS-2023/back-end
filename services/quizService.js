@@ -82,3 +82,45 @@ exports.getQuizByClassID = async (req, res, next) => {
   //console.log(classA.Quizzes);
   return res.json(classA.Quizzes);
 };
+
+exports.getQuizDetailsStudent = async (req, res, next) => {
+  const schema = Joi.object({
+    id: Joi.objectId().required(),
+  });
+
+  const validation = schema.validate({ id: req.params.id });
+  if (validation.error)
+    return res
+      .status(400)
+      .send({ message: `${validation.error.details[0].message}` });
+
+  const quiz = await Quiz.findById(req.params.id)
+    .populate({
+      path: "questions",
+      populate: {
+        path: "answers",
+      },
+    })
+    .populate({
+      path: "submissions",
+      match: { studentID: req.user._id },
+      populate: [
+        {
+          path: "studentID",
+          select: "fullName email profilePic",
+        },
+        {
+          path: "submission.question",
+          select: "questionDescription",
+        },
+        {
+          path: "submission.answer",
+          select: "answerDescription",
+        },
+      ],
+    });
+
+  if (!quiz) return res.status(404).send({ message: "Quiz with ID not found" });
+
+  return res.json(quiz);
+};

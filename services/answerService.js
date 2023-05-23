@@ -8,7 +8,6 @@ exports.createAnswer = async (req, res, next) => {
   // answerDescription: String
   // QuestionId: Question Id
   // correctAnswer: true/false
-  
 
   if (!req.body?.QuestionId) {
     return res.status(400).send({ message: "Question ID required" });
@@ -30,6 +29,11 @@ exports.createAnswer = async (req, res, next) => {
 
   const question = await Question.findById(req.body?.QuestionId);
 
+  if (!question)
+    return res.status(400).send({ message: "Invalid Question ID" });
+
+  //console.log(question);
+
   question.answers.push(result._id);
 
   if (req.body.correctAnswer) {
@@ -39,6 +43,4 @@ exports.createAnswer = async (req, res, next) => {
   const finalResult = await question.save();
 
   return res.json(finalResult);
-
- 
 };

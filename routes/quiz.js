@@ -17,4 +17,11 @@ router.get(
   auth,
   asyncMiddleware(quizService.getQuizByClassID)
 );
+
+router.get(
+  "/getQuizDetailsStudent/:id",
+  auth,
+  asyncMiddleware(quizService.getQuizDetailsStudent)
+);
+
 module.exports = router;
