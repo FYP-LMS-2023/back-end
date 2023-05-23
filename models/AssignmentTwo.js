@@ -34,7 +34,7 @@ const assignment2Schema = new mongoose.Schema({
     type: String,
     //required: true,
     minlength: [0, "Description must have a minimum length of 0 characters."],
-    maxlength: [1024, "Description must not exceed 1024 characters."],
+    maxlength: [4096, "Description must not exceed 1024 characters."],
     default: "No description provided by the instructor.",
     validate: {
       validator: function (value) {

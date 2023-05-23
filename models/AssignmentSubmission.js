@@ -29,15 +29,15 @@ const assignmentSubmissionSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: "No submission description provided.",
-    minlength: 5,
-    maxlength: 1024,
-    validate: {
-      validator: function (value) {
-        // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
-      },
-      message: "Only white space characters are not allowed.",
-    },
+    minlength: [0, "Title must have a minimum length of 0 characters."],
+    maxlength: [2048, "Description must not exceed 2048 characters."],
+    // validate: {
+    //   validator: function (value) {
+    //     // Check if the value contains only white space characters
+    //     return /^\s*$/.test(value) === false;
+    //   },
+    //   message: "Only white space characters are not allowed.",
+    // },
   },
   submissionNumber: {
     type: Number,
@@ -68,7 +68,7 @@ const assignmentSubmissionSchema = new mongoose.Schema({
     validate: {
       validator: function (value) {
         // Check if the value contains only white space characters
-        return /^\s*$/.test(value);
+        return /^\s*$/.test(value) === false;
       },
       message: "Only white space characters are not allowed.",
     },
