@@ -146,6 +146,17 @@ exports.getAssignmentFiles = async function (req, res, next) {
 
 exports.submitAssignment = async function (req, res) {
   const { id } = req.params;
+
+  //check if you have sent submission description make sure it is not empty
+  if (
+    "submissionDescription" in req.body &&
+    req.body.submissionDescription.trim().length === 0
+  ) {
+    return res
+      .status(400)
+      .send({ message: "Description, if provided, cannot be empty" });
+  }
+
   if (!id) {
     return res.status(400).send({ message: "Assignment ID is required!" });
   }
