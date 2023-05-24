@@ -191,17 +191,16 @@ exports.getProfile = async (req, res, next) => {
 };
 
 exports.getPopulatedProfile = async (req, res, next) => {
-  const { id } = req.params;
-
-  const user = await User.findById(id)
+  const user = await User.findById(req.user._id)
     .populate({
       path: "courses",
       select: "courseCode courseName",
     })
     .populate({
       path: "Program",
-      select: "name code description",
-    });
+      select: "name code",
+    })
+    .select("-password");
 
   if (!user) {
     return res.status(400).send({ message: "User doesn't exist anymore!" });
@@ -281,14 +280,16 @@ exports.updatePassword = async (req, res, next) => {
   if (!validPassword)
     return res.status(401).send({ message: "Invalid current Password!" });
 
-  if (req.body.newPass !== req.body.confirmPass){
-    return res.status(400).send({message: "New Password and Confirm Password don't match!"})
+  if (req.body.newPass !== req.body.confirmPass) {
+    return res
+      .status(400)
+      .send({ message: "New Password and Confirm Password don't match!" });
   }
 
   const salt = await bcrypt.genSalt(10);
   user.password = await bcrypt.hash(req.body.newPass, salt);
 
-  const result = await user.save()
+  const result = await user.save();
 
-  return res.json({message: "Password updated successfully!"})
+  return res.json({ message: "Password updated successfully!" });
 };
