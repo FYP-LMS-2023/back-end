@@ -37,6 +37,10 @@ const addingMarks = async (resultQuiz, schemaQuizSubmission) => {
 };
 
 exports.submitQuiz = async (req, res, next) => {
+  console.log(req.body);
+  console.log("printing header");
+  console.log(req.headers);
+
   var schemaQuizSubmission = {
     studentID: req.user._id,
     marksReceived: 0,
