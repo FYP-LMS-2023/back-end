@@ -10,7 +10,7 @@ exports.createQuestion = async (req, res, next) => {
   }
   var schemaQuestion = {
     questionDescription: req.body?.questionDescription,
-    answers: req.body?.answers,
+    answers: [],
     correctAnswer: req.body?.correctAnswer,
     marks: req.body?.marks,
   };

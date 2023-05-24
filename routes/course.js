@@ -14,4 +14,6 @@ router.get("/getCourse/:id", auth, asyncMiddleware(courseService.getCourse));
 router.patch("/updateCourse/:id", [auth, admin], asyncMiddleware(courseService.updateCourse));
 
 
+router.get("/getAllCoursesWithPrograms", auth, asyncMiddleware(courseService.getAllCoursesWithPrograms));
+
 module.exports = router;

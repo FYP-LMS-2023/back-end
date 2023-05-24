@@ -1,13 +1,21 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi)
+Joi.objectId = require("joi-objectid")(Joi);
 require("dotenv").config();
-
 
 const commentSchema = new mongoose.Schema({
   comment: {
     type: String,
     required: true,
+    minlength: [1, "Comment must have a minimum length of 5 characters."],
+    maxlength: [4096, "Comment must not exceed 4096 characters."],
+    validate: {
+      validator: function (value) {
+        // Check if the value does not consist only of white space characters
+        return /^\s*$/.test(value) === false;
+      },
+      message: "Only white space characters are not allowed.",
+    },
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,35 +33,35 @@ const commentSchema = new mongoose.Schema({
     default: Date.now,
   },
   replies: [
-   {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Reply",
-   }
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Reply",
+    },
   ],
   upvotes: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-    }
+    },
   ],
   downvotes: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-    }
-  ]
+    },
+  ],
 });
 
-commentSchema.virtual('upvoteCount').get(function () {
+commentSchema.virtual("upvoteCount").get(function () {
   return this.upvotes.length;
 });
 
-commentSchema.virtual('downvoteCount').get(function () {
+commentSchema.virtual("downvoteCount").get(function () {
   return this.downvotes.length;
 });
 
-commentSchema.set('toJSON', { virtuals: true });
-commentSchema.set('toObject', { virtuals: true });
+commentSchema.set("toJSON", { virtuals: true });
+commentSchema.set("toObject", { virtuals: true });
 
 const Comment = mongoose.model("Comment", commentSchema);
 
@@ -70,5 +78,5 @@ function validateComment(comment) {
 
 module.exports = {
   Comment,
-  validateComment
-}
+  validateComment,
+};
