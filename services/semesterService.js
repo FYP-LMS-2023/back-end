@@ -50,6 +50,7 @@ exports.getSemesters = async (req, res, next) => {
     );
     const semesterEndMonth = moment(semester.semesterEndDate).format("MMMM");
     return {
+      semesterID: semester._id,
       semesterName: semester.semesterName,
       semesterStartDate: formattedStartDate,
       semesterEndDate: formattedEndDate,
