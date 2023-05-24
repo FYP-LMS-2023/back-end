@@ -38,7 +38,8 @@ const userSchema = new mongoose.Schema({
   },
   profilePic: {
     type: String,
-    default: "https://res.cloudinary.com/dixie2mle/image/upload/v1684248194/profile_pictures/1684248190243-placeholder.png.png",
+    default:
+      "https://res.cloudinary.com/dixie2mle/image/upload/v1684248194/profile_pictures/1684248190243-placeholder.png.png",
   },
   //we can store a course with an invalid author, that might be an issue
   courses: [
@@ -67,7 +68,7 @@ const userSchema = new mongoose.Schema({
     default: function () {
       if (this.userType == "Student") return 0.0;
     },
-    required: false
+    required: false,
   },
 
   Program: {
@@ -112,7 +113,7 @@ userSchema.methods.generateAuthToken = function () {
     },
     process.env.jwtPrivateKey,
     {
-      expiresIn: '24h'
+      expiresIn: "24h",
     }
   );
   return token;
@@ -138,10 +139,8 @@ function validateUser(user) {
       not: "Admin",
       then: Joi.required(),
     }),
-    CGPA: Joi.number()
-      .min(0.0)
-      .max(4.0),
-      // .when("userType", { not: "Admin", then: Joi.required() }),
+    CGPA: Joi.number().min(0.0).max(4.0),
+    // .when("userType", { not: "Admin", then: Joi.required() }),
     Program: Joi.string().when("userType", {
       not: "Admin",
       then: Joi.required(),
