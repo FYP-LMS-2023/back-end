@@ -41,8 +41,10 @@ exports.test = async (req, res, next) => {
 exports.createUser = async (req, res, next) => {
   var isAdmin = false;
 
-  if(!req.body.program) {
-    return res.status(400).send({ message: "Program needs to be specified" });
+  if (req.body?.userType != "Admin") {
+    if (!req.body.program) {
+      return res.status(400).send({ message: "Program needs to be specified" });
+    }
   }
 
   var schema = {
@@ -86,13 +88,11 @@ exports.createUser = async (req, res, next) => {
     const ERPcheck = await User.find({ ERP: req.body.ERP });
     if (ERPcheck.length)
       return res.status(400).send({ message: "User with ERP already exists!" });
-  }
 
-  const program = await Program.findById(req.body.program);
-  if (!program)
-    return res.status(400).send({ message: "Program doesn't exist!" });
-  
-  
+    const program = await Program.findById(req.body.program);
+    if (!program)
+      return res.status(400).send({ message: "Program doesn't exist!" });
+  }
 
   let user = new User(schema);
 
@@ -101,7 +101,7 @@ exports.createUser = async (req, res, next) => {
 
   const result = await user.save();
 
-  if(req.body.userType === "Faculty") {
+  if (req.body.userType === "Faculty") {
     program.faculty.push(result._id);
     await program.save();
   }
@@ -191,29 +191,25 @@ exports.getProfile = async (req, res, next) => {
 };
 
 exports.getPopulatedProfile = async (req, res, next) => {
+  const { id } = req.params;
 
-    const {id} = req.params;
-  
-    const user = await User.findById(id)
-      .populate({
-        path: "courses",
-        select: "courseCode courseName",
-      })
-      .populate({
-        path: "Program",
-        select: "name code description",
-      });
-    
-    
-    if (!user) {
-      return res.status(400).send({ message: "User doesn't exist anymore!" });
-    }
-    res.status(200).send({ user });
-  
+  const user = await User.findById(id)
+    .populate({
+      path: "courses",
+      select: "courseCode courseName",
+    })
+    .populate({
+      path: "Program",
+      select: "name code description",
+    });
+
+  if (!user) {
+    return res.status(400).send({ message: "User doesn't exist anymore!" });
+  }
+  res.status(200).send({ user });
 };
 
 exports.uploadProfilePic = async (req, res, next) => {
-
   const user = await User.findById(req.user._id);
   if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
   try {
@@ -226,46 +222,73 @@ exports.uploadProfilePic = async (req, res, next) => {
       return res.status(400).send({ message: "No file uploaded" });
     }
 
-    if (file.size > 1024*1024*3) {
+    if (file.size > 1024 * 1024 * 3) {
       return res.status(400).send({ message: "File size too large" });
     }
 
     const fileDetails = {
       url: file.path,
       public_id: file.filename,
-      format: file.mimetype
+      format: file.mimetype,
     };
-    
+
     res.status(200).send({
       message: "File uploaded successfully!",
-      fileDetails: fileDetails
+      fileDetails: fileDetails,
     });
-
   } catch (ex) {
-    console.error(ex);  // log the exception to see more details about the error
+    console.error(ex); // log the exception to see more details about the error
     return res.status(400).send({ message: "No file uploaded => Exception" });
   }
 };
 
 exports.doThisShit = async (req, res, next) => {
-
-  const newProfilePicUrl = 'https://res.cloudinary.com/dixie2mle/image/upload/v1684248194/profile_pictures/1684248190243-placeholder.png.png';
+  const newProfilePicUrl =
+    "https://res.cloudinary.com/dixie2mle/image/upload/v1684248194/profile_pictures/1684248190243-placeholder.png.png";
 
   const updateResult = await User.updateMany(
     {},
-    { profilePic: newProfilePicUrl },
+    { profilePic: newProfilePicUrl }
   );
 
   console.log(updateResult);
 
   if (updateResult.ok !== 1) {
-    return res.status(500).send({ message: "Failed to update profile pictures" });
+    return res
+      .status(500)
+      .send({ message: "Failed to update profile pictures" });
   }
 
   res.status(200).send({
     message: `${updateResult.nModified} profile pictures updated successfully!`,
-    result: updateResult
+    result: updateResult,
   });
 };
 
+exports.updatePassword = async (req, res, next) => {
+  if (!req.body.currPass) {
+    return res.status(400).send({ message: "currPass is required!" });
+  }
+  if (!req.body.newPass) {
+    return res.status(400).send({ message: "newPass is required!" });
+  }
+  if (!req.body.confirmPass) {
+    return res.status(400).send({ message: "confirmPass is required!" });
+  }
 
+  const user = await User.findById(req.user._id);
+  const validPassword = await bcrypt.compare(req.body.currPass, user.password);
+  if (!validPassword)
+    return res.status(401).send({ message: "Invalid current Password!" });
+
+  if (req.body.newPass !== req.body.confirmPass){
+    return res.status(400).send({message: "New Password and Confirm Password don't match!"})
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(req.body.newPass, salt);
+
+  const result = await user.save()
+
+  return res.json({message: "Password updated successfully!"})
+};

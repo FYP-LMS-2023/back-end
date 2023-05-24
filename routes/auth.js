@@ -12,7 +12,7 @@ router.post("/createUser", [auth , admin], asyncMiddleware(authService.createUse
 router.post("/login", asyncMiddleware(authService.login));
 router.get("/getProfile", auth, asyncMiddleware(authService.getProfile));
 router.get("/getPopulatedProfile/:id", auth, asyncMiddleware(authService.getPopulatedProfile));
-
+router.post("/updatePassword", auth, asyncMiddleware(authService.updatePassword))
 router.post("/uploadProfilePic", [auth, uploadProfilePicture.single("file")], asyncMiddleware(authService.uploadProfilePic));
 
 router.post("/doThisShit", [auth], asyncMiddleware(authService.doThisShit));
