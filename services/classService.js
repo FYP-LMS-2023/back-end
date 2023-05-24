@@ -147,6 +147,9 @@ exports.assignTA = async (req, res, next) => {
   if (classObj.TA.includes(req.body.taID)) {
     return res.status(400).send({ message: "Student already assigned!" });
   }
+  if (classObj.studentList.includes(req.body.taID)){
+    return res.status(400).send({message: "Student is enrolled in class, thus cannot be assigned TA!"})
+  }
   classObj.TA.push(req.body.taID);
   const result = await classObj.save();
   if (result) {
