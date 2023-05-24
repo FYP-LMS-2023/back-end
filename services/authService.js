@@ -293,3 +293,19 @@ exports.updatePassword = async (req, res, next) => {
 
   return res.json({ message: "Password updated successfully!" });
 };
+
+exports.getFaculty = async (req, res, next) => {
+  const faculty = await User.find({userType: "Faculty"})
+  if (faculty.length === 0){
+    return res.status(404).send({message: "No faculty members!"})
+  }
+  return res.json(faculty)
+};
+
+exports.getStudents = async (req, res, next) => {
+  const students = await User.find({userType: "Student"})
+  if (students.length === 0){
+    return res.status(404).send({message: "No students!"})
+  }
+  return res.json(students)
+};
