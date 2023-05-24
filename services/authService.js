@@ -88,7 +88,7 @@ exports.createUser = async (req, res, next) => {
     const ERPcheck = await User.find({ ERP: req.body.ERP });
     if (ERPcheck.length)
       return res.status(400).send({ message: "User with ERP already exists!" });
-   
+
     const program = await Program.findById(req.body.program);
     if (!program)
       return res.status(400).send({ message: "Program doesn't exist!" });
@@ -263,4 +263,32 @@ exports.doThisShit = async (req, res, next) => {
     message: `${updateResult.nModified} profile pictures updated successfully!`,
     result: updateResult,
   });
+};
+
+exports.updatePassword = async (req, res, next) => {
+  if (!req.body.currPass) {
+    return res.status(400).send({ message: "currPass is required!" });
+  }
+  if (!req.body.newPass) {
+    return res.status(400).send({ message: "newPass is required!" });
+  }
+  if (!req.body.confirmPass) {
+    return res.status(400).send({ message: "confirmPass is required!" });
+  }
+
+  const user = await User.findById(req.user._id);
+  const validPassword = await bcrypt.compare(req.body.currPass, user.password);
+  if (!validPassword)
+    return res.status(401).send({ message: "Invalid current Password!" });
+
+  if (req.body.newPass !== req.body.confirmPass){
+    return res.status(400).send({message: "New Password and Confirm Password don't match!"})
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  user.password = await bcrypt.hash(req.body.newPass, salt);
+
+  const result = await user.save()
+
+  return res.json({message: "Password updated successfully!"})
 };
