@@ -93,7 +93,6 @@ exports.getQuizDetailsStudent = async (req, res, next) => {
     return res
       .status(400)
       .send({ message: `${validation.error.details[0].message}` });
-
   const quiz = await Quiz.findById(req.params.id)
     .populate({
       path: "questions",
