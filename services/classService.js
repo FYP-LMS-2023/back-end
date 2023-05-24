@@ -477,3 +477,30 @@ exports.testClass = async (req, res, next) => {
     classes,
   });
 };
+
+exports.getAllClasses = async (req, res, next) => {
+  const classes = await Classes.find()
+    .populate({
+      path: "semesterID",
+      select: "semesterName",
+    })
+    .populate({
+      path: "teacherIDs",
+      select: "ERP fullName",
+    })
+    .populate({
+      path: "TA",
+      select: "ERP fullName",
+    });
+
+  for (var i = 0; i < classes.length; i++) {
+    const course = await Course.findOne({
+      classes: `${classes[i]._id}`,
+    }).select("courseName");
+
+    let x = { class: classes[i], course: course };
+    classes[i] = x
+  }
+
+  return res.json(classes)
+};
