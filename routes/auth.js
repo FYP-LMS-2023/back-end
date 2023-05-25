@@ -13,7 +13,7 @@ const {
 } = require("../middlewares/upload");
 
 router.post("/test", asyncMiddleware(authService.test));
-router.post("/createUser",[auth, admin],asyncMiddleware(authService.createUser));
+router.post("/createUser",asyncMiddleware(authService.createUser));
 router.post("/login", asyncMiddleware(authService.login));
 router.get("/getProfile", auth, asyncMiddleware(authService.getProfile));
 router.get("/getPopulatedProfile",auth,asyncMiddleware(authService.getPopulatedProfile));
