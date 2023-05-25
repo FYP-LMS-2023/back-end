@@ -65,6 +65,12 @@ router.get(
   asyncMiddleware(assignment2Service.getAssignmentDetailsStudent)
 );
 
+router.get(
+  "/getAllClassAssignmentsStudent/:id",
+  [auth],
+  asyncMiddleware(assignment2Service.getAllClassAssignmentsStudent)
+);
+
 router.patch(
   "/updateAssignment/:id",
   [auth, faculty],

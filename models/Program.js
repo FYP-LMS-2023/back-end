@@ -8,13 +8,6 @@ const programSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value contains only white space characters
-    //     return /^\s*$/.test(value);
-    //   },
-    //   message: "Only white space characters are not allowed.",
-    // },
     minlength: 4,
     maxlength: 255,
   },

@@ -145,16 +145,10 @@ exports.getChannel = async (req, res, next) => {
     path: "threads",
     populate: [{ path: "postedBy", select: "fullName ERP -_id" }],
     options: { sort: { datePosted: -1 } },
+    match: { deleteFlag: false },
   });
 
   res.status(200).send(populatedChannel);
-  // var populatedResult = await channel.populate({
-  //   path: 'threads',
-  //   populate: [
-  //     { path: 'postedBy', select: 'fullName ERP -_id' },
-  //     { path: 'comments', populate: { path: 'postedBy', select: 'fullName ERP -_id' } }
-  //   ]
-  // })
 };
 
 // exports.getThread = async (req, res, next) => {
@@ -265,12 +259,14 @@ exports.getThread = async (req, res, next) => {
     })
     .populate({
       path: "comments",
+      match: { deleteFlag: false },
       populate: [
         { path: "postedBy", select: "fullName ERP profilePic -_id" },
         //{ path: "upvotes", select: "fullName ERP profilePic -_id"},
         //{ path: "downvotes", select: "fullName ERP profilePic -_id" },
         {
           path: "replies",
+          match: { deleteFlag: false },
           populate: [
             { path: "postedBy", select: "fullName ERP profilePic -_id" },
             //{ path: "upvotes", select: "fullName ERP profilePic -_id" },
@@ -286,6 +282,100 @@ exports.getThread = async (req, res, next) => {
   }
 
   res.status(200).send(populatedThread.toObject());
+};
+
+exports.updateThread = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Thread ID is required!" });
+  }
+  const thread = await Thread.findById(id);
+  if (!thread) {
+    return res.status(400).send({ message: "Thread does not exist!" });
+  }
+
+  if (thread.postedBy != req.user._id) {
+    return res
+      .status(400)
+      .send({ message: "You are not allowed to edit this thread!" });
+  }
+  if (req.body.title) {
+    thread.title = req.body.title;
+  }
+  if (req.body.description) {
+    thread.description = req.body.description;
+  }
+  await thread.save();
+
+  res
+    .status(200)
+    .send({
+      message: "Thread updated successfully!",
+      thread: thread.toObject(),
+    });
+};
+
+exports.markThreadAsDeleted = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Thread ID is required!" });
+  }
+  const thread = await Thread.findById(id);
+  if (!thread) {
+    return res.status(400).send({ message: "Thread does not exist!" });
+  }
+  if (thread.postedBy != req.user._id) {
+    return res
+      .status(400)
+      .send({ message: "You are not allowed to delete this thread!" });
+  }
+
+  thread.deleteFlag = true;
+  await thread.save();
+
+  res.status(200).send({ message: "Thread deleted successfully!" });
+};
+
+exports.markCommentAsDeleted = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Comment ID is required!" });
+  }
+  const comment = await Comment.findById(id);
+  if (!comment) {
+    return res.status(400).send({ message: "Comment does not exist!" });
+  }
+  if (comment.postedBy != req.user._id) {
+    return res
+      .status(400)
+      .send({ message: "You are not allowed to delete this comment!" });
+  }
+
+  comment.deleteFlag = true;
+  await comment.save();
+
+  res.status(200).send({ message: "Comment deleted successfully!" });
+};
+
+exports.markReplyAsDeleted = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Reply ID is required!" });
+  }
+  const reply = await Reply.findById(id);
+  if (!reply) {
+    return res.status(400).send({ message: "Reply does not exist!" });
+  }
+  if (reply.postedBy != req.user._id) {
+    return res
+      .status(400)
+      .send({ message: "You are not allowed to delete this reply!" });
+  }
+
+  reply.deleteFlag = true;
+  await reply.save();
+
+  res.status(200).send({ message: "Reply deleted successfully!" });
 };
 
 exports.createCommentOnThread = async (req, res, next) => {

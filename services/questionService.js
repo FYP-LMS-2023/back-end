@@ -21,7 +21,13 @@ exports.createQuestion = async (req, res, next) => {
   let question = new Question(schemaQuestion);
   const result = await question.save();
 
+  console.log(req.body.quizID);
   const quiz = await Quiz.findById(req.body.quizID);
+  console.log(quiz);
+
+  if (!quiz) {
+    return res.status(404).send({ message: "Quiz with ID not found" });
+  }
 
   quiz.questions.push(result._id);
 
@@ -29,5 +35,12 @@ exports.createQuestion = async (req, res, next) => {
 
   const finalResult = await quiz.save();
 
-  return res.json(finalResult);
+  console.log("printing qID in createquestion");
+  console.log(result._id);
+
+  return res.status(200).send({
+    message: "Question created successfully",
+    questionID: result._id,
+    finalResult,
+  });
 };
