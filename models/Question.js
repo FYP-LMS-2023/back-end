@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 require("dotenv").config();
-Joi.objectId = require('joi-objectid')(Joi)
+Joi.objectId = require("joi-objectid")(Joi);
 
 const qestionSchema = new mongoose.Schema({
   questionDescription: {
@@ -26,11 +26,6 @@ const qestionSchema = new mongoose.Schema({
     ref: "Answer",
     required: false,
     default: null,
-    // validate: {
-    //   validator: function (v) {
-    //     return mongoose.Types.ObjectId.isValid(v);
-    //   },
-    // },
     message: (props) => `${props.value} is not a valid answer id!`,
   },
   marks: {
@@ -47,12 +42,12 @@ function validateQuestion(question) {
     questionDescription: Joi.string().min(5).max(100).required(),
     answers: Joi.array().items(Joi.objectId()).required(),
     correctAnswer: Joi.string().min(0),
-    marks: Joi.number()
+    marks: Joi.number(),
   });
   return schema.validate(question);
 }
 
 module.exports = {
   Question,
-  validateQuestion
-}
+  validateQuestion,
+};

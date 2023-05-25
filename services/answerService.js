@@ -20,17 +20,20 @@ exports.createAnswer = async (req, res, next) => {
     answerDescription: req.body?.answerDescription,
   };
 
+  console.log("printing qID in createanswer");
+  console.log(req.body.QuestionId);
+
+  const question = await Question.findById(req.body?.QuestionId);
+
+  if (!question)
+    return res.status(400).send({ message: "Invalid Question ID" });
+
   const { error } = validateAnswer(schemaAnswer);
   if (error)
     return res.status(400).send({ message: `${error.details[0].message}` });
 
   let answer = new Answer(schemaAnswer);
   const result = await answer.save();
-
-  const question = await Question.findById(req.body?.QuestionId);
-
-  if (!question)
-    return res.status(400).send({ message: "Invalid Question ID" });
 
   //console.log(question);
 

@@ -23,13 +23,6 @@ const courseSchema = new mongoose.Schema({
   courseDescription: {
     type: String,
     required: true,
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value contains only white space characters
-    //     return /^\s*$/.test(value);
-    //   },
-    //   message: "Only white space characters are not allowed.",
-    // },
     minlength: 5,
     maxlength: 2048,
   },
