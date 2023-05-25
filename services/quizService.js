@@ -161,3 +161,34 @@ exports.deleteQuiz = async (req, res, next) => {
 
   res.status(200).send({ message: "Quiz deleted." });
 };
+
+exports.getQuizSubmissionsForFaculty = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) return res.status(400).send({ message: "QuizId is required." });
+
+  const quiz = await Quiz.findById(id).populate({
+    path: "submissions",
+    populate: [
+      {
+        path: "studentID",
+        select: "fullName email profilePic",
+      },
+      {
+        path: "submission.question",
+        select: "questionDescription",
+      },
+      {
+        path: "submission.answer",
+        select: "answerDescription",
+      },
+    ],
+  });
+
+  if (!quiz)
+    return res.status(404).send({ message: "Quiz with ID not found." });
+
+  return res.status(200).send({
+    message: "Quiz submissions retrieved successfully.",
+    submissions: quiz,
+  });
+};

@@ -30,4 +30,10 @@ router.patch(
   asyncMiddleware(quizService.deleteQuiz)
 );
 
+router.get(
+  "/getQuizSubmissionsForFaculty/:id",
+  [auth, faculty],
+  asyncMiddleware(quizService.getQuizSubmissionsForFaculty)
+);
+
 module.exports = router;
