@@ -284,6 +284,37 @@ exports.getThread = async (req, res, next) => {
   res.status(200).send(populatedThread.toObject());
 };
 
+exports.updateThread = async (req, res, next) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Thread ID is required!" });
+  }
+  const thread = await Thread.findById(id);
+  if (!thread) {
+    return res.status(400).send({ message: "Thread does not exist!" });
+  }
+
+  if (thread.postedBy != req.user._id) {
+    return res
+      .status(400)
+      .send({ message: "You are not allowed to edit this thread!" });
+  }
+  if (req.body.title) {
+    thread.title = req.body.title;
+  }
+  if (req.body.description) {
+    thread.description = req.body.description;
+  }
+  await thread.save();
+
+  res
+    .status(200)
+    .send({
+      message: "Thread updated successfully!",
+      thread: thread.toObject(),
+    });
+};
+
 exports.markThreadAsDeleted = async (req, res, next) => {
   const { id } = req.params;
   if (!id) {

@@ -71,18 +71,24 @@ router.post(
 
 router.patch(
   "/deleteThread/:id",
-  [auth, faculty],
+  auth,
   asyncMiddleware(channelService.markThreadAsDeleted)
 );
 router.patch(
   "/deleteComment/:id",
-  [auth, faculty],
+  auth,
   asyncMiddleware(channelService.markCommentAsDeleted)
 );
 router.patch(
   "/deleteReply/:id",
-  [auth, faculty],
+  auth,
   asyncMiddleware(channelService.markReplyAsDeleted)
+);
+
+router.patch(
+  "/updateThread/:id",
+  auth,
+  asyncMiddleware(channelService.updateThread)
 );
 
 module.exports = router;
