@@ -226,6 +226,9 @@ exports.enrollStudent = async (req, res, next) => {
   if (classObj.studentList.includes(studentID)) {
     return res.status(400).send({ message: "Student already enrolled!" });
   }
+  if (classObj.TA.includes(studentID)) {
+    return res.status(400).send({ message: "Student is TA of Class thus cannot be enrolled!" });
+  }
 
   classObj.studentList.push(studentID);
   await classObj.save();
