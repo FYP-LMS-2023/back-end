@@ -23,24 +23,10 @@ const threadSchema = new mongoose.Schema({
     required: true,
     minlength: [1, "Thread title must have a minimum length of 5 characters."],
     maxlength: [255, "Thread title must not exceed 255 characters."],
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value does not consist only of white space characters
-    //     return /^\s*$/.test(value) === false;
-    //   },
-    //   message: "Only white space characters are not allowed.",
-    // },
   },
   description: {
     type: String,
     required: true,
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value contains only white space characters
-    //     return !/^\s*$/.test(value);
-    //   },
-    //   message: "Only white space characters are not allowed.",
-    // },
     minlength: [
       1,
       "Thread description must have a minimum length of 5 characters.",
@@ -87,6 +73,10 @@ const threadSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+  deleteFlag: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 threadSchema.virtual("upvoteCount").get(function () {

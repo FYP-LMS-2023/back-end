@@ -15,6 +15,7 @@ const { User } = require("../models/User.js");
 const { Classes } = require("../models/Class.js");
 const mongoose = require("mongoose");
 const moment = require("moment");
+const { ObjectId } = mongoose.Types;
 
 const {
   AssignmentSubmission,
@@ -508,6 +509,8 @@ exports.getAllClassAssignments = async function (req, res) {
       .send({ message: "Something went wrong! Exception detected" });
   }
 };
+
+exports.getAllClassAssignmentsStudent = async function (req, res) {};
 
 exports.getAssignmentById = async function (req, res) {
   const { id } = req.params;

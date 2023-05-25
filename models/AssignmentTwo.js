@@ -18,12 +18,6 @@ const assignment2Schema = new mongoose.Schema({
     required: true,
     minlength: [5, "Title must have a minimum length of 5 characters."],
     maxlength: [255, "Title must not exceed 255 characters."],
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value does not consist only of white space characters
-    //     return /^\s*$/.test(value) === false;
-    //   },
-    // },
   },
   status: {
     type: String,
@@ -36,13 +30,6 @@ const assignment2Schema = new mongoose.Schema({
     minlength: [0, "Description must have a minimum length of 0 characters."],
     maxlength: [4096, "Description must not exceed 1024 characters."],
     default: "No description provided by the instructor.",
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value does not consist only of white space characters
-    //     return /^\s*$/.test(value) === false;
-    //   },
-    //   message: "Description must not consist only of white space characters.",
-    // },
   },
   marks: {
     type: Number,
@@ -65,7 +52,6 @@ const assignment2Schema = new mongoose.Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "AssignmentSubmission",
-      required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
