@@ -89,7 +89,7 @@ exports.createUser = async (req, res, next) => {
     if (ERPcheck.length)
       return res.status(400).send({ message: "User with ERP already exists!" });
 
-    const program = await Program.findById(req.body.program);
+    let program = await Program.findById(req.body.program);
     if (!program)
       return res.status(400).send({ message: "Program doesn't exist!" });
   }
@@ -102,6 +102,7 @@ exports.createUser = async (req, res, next) => {
   const result = await user.save();
 
   if (req.body.userType === "Faculty") {
+    let program = await Program.findById(req.body.program);
     program.faculty.push(result._id);
     await program.save();
   }
