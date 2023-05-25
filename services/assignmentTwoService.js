@@ -510,7 +510,63 @@ exports.getAllClassAssignments = async function (req, res) {
   }
 };
 
-exports.getAllClassAssignmentsStudent = async function (req, res) {};
+exports.getAllClassAssignmentsStudent = async function (req, res) {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).send({ message: "Class ID is required!" });
+  }
+  const classA = await Classes.findById(id);
+  if (!classA) {
+    return res.status(400).send({ message: "Invalid class ID!" });
+  }
+  const allAssignmentsIDs = classA.Assignments;
+  //console.log(allAssignmentsIDs);
+
+  const allAssignments = await Assignment.find({
+    _id: { $in: allAssignmentsIDs },
+    deleteFlag: false,
+  }).populate({
+    path: "submissions",
+    select: "marksReceived returned studentID",
+  });
+
+  const assignments = [];
+
+  for (const assignment of allAssignments) {
+    let isSubmitted = false;
+    let marksReceived = 0;
+    let returned = false;
+
+    for (const submission of assignment.submissions) {
+      if (submission.studentID.toString() === req.user._id.toString()) {
+        isSubmitted = true;
+        marksReceived = submission.marksReceived;
+        returned = submission.returned;
+        break; // Exit the loop since we found a submission for the current student
+      }
+    }
+
+    const assignmentObject = {
+      _id: assignment._id,
+      title: assignment.title,
+      uploadDate: assignment.uploadDate,
+      dueDate: assignment.dueDate,
+      description: assignment.description,
+      marks: assignment.marks,
+      status: assignment.status,
+      isSubmitted,
+      marksReceived,
+      returned,
+    };
+
+    assignments.push(assignmentObject);
+  }
+
+  res.status(200).send({
+    message: "Assignments fetched successfully!",
+    assignments,
+  });
+};
 
 exports.getAssignmentById = async function (req, res) {
   const { id } = req.params;
