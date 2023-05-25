@@ -58,7 +58,7 @@ function validateAnnouncement(announcement) {
 
 function validateAnnouncementUpdate(announcement) {
   var schema = Joi.object({
-    title: Joi.string().min(5).max(50).optional(),
+    title: Joi.string().min(5).max(255).optional(),
     description: Joi.string().min(5).max(1024).optional(),
     announcementType: Joi.string()
       .valid("general", "course", "quiz", "assignment", "exam")

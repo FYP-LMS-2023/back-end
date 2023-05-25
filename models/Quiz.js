@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-Joi.objectId = require('joi-objectid')(Joi)
+Joi.objectId = require("joi-objectid")(Joi);
 require("dotenv").config();
 
 const quizSchema = new mongoose.Schema({
@@ -92,7 +92,7 @@ const Quiz = mongoose.model("Quiz", quizSchema);
 function validateQuiz(quiz) {
   var schema = Joi.object({
     title: Joi.string().min(5).max(50).required(),
-    description: Joi.string().min(5).max(255).required(),
+    description: Joi.string().min(5).max(1024).required(),
     uploadDate: Joi.date(),
     dueDate: Joi.date().required(),
     startDate: Joi.date().required(),
@@ -100,12 +100,12 @@ function validateQuiz(quiz) {
     status: Joi.string().valid("open", "closed", "pending").required(),
     submissions: Joi.array().items(Joi.objectId()).required(),
     questions: Joi.array().items(Joi.objectId()).required(),
-    marks: Joi.number()
+    marks: Joi.number(),
   });
   return schema.validate(quiz);
 }
 
 module.exports = {
   Quiz,
-  validateQuiz
-}
+  validateQuiz,
+};
