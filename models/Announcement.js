@@ -10,26 +10,12 @@ const announcementSchema = new mongoose.Schema({
     required: true,
     minlength: 5,
     maxlength: 255,
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value contains only white space characters
-    //     return /^\s*$/.test(value);
-    //   },
-    //   message: "Only white space characters are not allowed.",
-    // },
   },
   description: {
     type: String,
     required: true,
     minlength: 5,
     maxlength: 1024,
-    // validate: {
-    //   validator: function (value) {
-    //     // Check if the value contains only white space characters
-    //     return /^\s*$/.test(value);
-    //   },
-    //   message: "Only white space characters are not allowed.",
-    // },
   },
   postedBy: {
     type: mongoose.Schema.Types.ObjectId,
