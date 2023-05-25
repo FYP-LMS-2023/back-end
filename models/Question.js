@@ -39,7 +39,7 @@ const Question = mongoose.model("Question", qestionSchema);
 
 function validateQuestion(question) {
   var schema = Joi.object({
-    questionDescription: Joi.string().min(5).max(100).required(),
+    questionDescription: Joi.string().min(5).max(250).required(),
     answers: Joi.array().items(Joi.objectId()).required(),
     correctAnswer: Joi.string().min(0),
     marks: Joi.number(),

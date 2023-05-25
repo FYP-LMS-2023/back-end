@@ -12,9 +12,9 @@ const answerSchema = new mongoose.Schema({
 const Answer = mongoose.model("Answer", answerSchema);
 
 //validate answer using joi
-function validateAnswer(answer){
+function validateAnswer(answer) {
   var schema = Joi.object({
-    answerDescription: Joi.string().min(5).max(255).required(),
+    answerDescription: Joi.string().min(1).max(255).required(),
   });
   return schema.validate(answer);
 }
@@ -22,4 +22,4 @@ function validateAnswer(answer){
 module.exports = {
   Answer,
   validateAnswer,
-}
+};
