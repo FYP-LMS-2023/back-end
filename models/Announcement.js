@@ -45,7 +45,7 @@ const Announcement = mongoose.model("Announcement", announcementSchema);
 //validate announcement using joi
 function validateAnnouncement(announcement) {
   var schema = Joi.object({
-    title: Joi.string().min(5).max(50).required(),
+    title: Joi.string().min(5).max(255).required(),
     description: Joi.string().min(5).max(1024).required(),
     postedBy: Joi.objectId().required(),
     datePosted: Joi.date().required(),
