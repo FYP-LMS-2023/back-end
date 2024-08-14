@@ -209,6 +209,31 @@ exports.getPopulatedProfile = async (req, res, next) => {
   res.status(200).send({ user });
 };
 
+exports.testing = async (req, res, next) => {
+  res.status(200).send({ message: "Testing" });
+};
+
+exports.submitFormApi = async (req, res, next) => {
+  // Log the request body
+  console.log("Request Body:", req.body);
+
+  // Log each individual component in the request body
+  Object.keys(req.body).forEach((key) => {
+    console.log(`${key}: ${req.body[key]}`);
+  });
+
+  //log the auth header
+  console.log("Auth Header:", req.headers.authorization);
+
+  console.log("break");
+  console.log("break");
+  console.log("now printing all headers");
+  console.log(req.headers);
+
+  // Respond to the client
+  res.status(200).send({ message: "Form data received" });
+};
+
 exports.uploadProfilePic = async (req, res, next) => {
   const user = await User.findById(req.user._id);
   if (!user) res.status(400).send({ message: "User doesn't exist anymore!" });
@@ -296,17 +321,17 @@ exports.updatePassword = async (req, res, next) => {
 };
 
 exports.getFaculty = async (req, res, next) => {
-  const faculty = await User.find({userType: "Faculty"})
-  if (faculty.length === 0){
-    return res.status(404).send({message: "No faculty members!"})
+  const faculty = await User.find({ userType: "Faculty" });
+  if (faculty.length === 0) {
+    return res.status(404).send({ message: "No faculty members!" });
   }
-  return res.json(faculty)
+  return res.json(faculty);
 };
 
 exports.getStudents = async (req, res, next) => {
-  const students = await User.find({userType: "Student"})
-  if (students.length === 0){
-    return res.status(404).send({message: "No students!"})
+  const students = await User.find({ userType: "Student" });
+  if (students.length === 0) {
+    return res.status(404).send({ message: "No students!" });
   }
-  return res.json(students)
+  return res.json(students);
 };

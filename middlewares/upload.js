@@ -155,9 +155,12 @@ const uploadSubmission = multer({
   fileFilter: fileFilter,
 });
 
+const submitForm = multer().none();
+
 module.exports = {
   uploadAssignment,
   uploadSubmission,
   uploadResource,
   uploadProfilePicture,
+  submitForm,
 };

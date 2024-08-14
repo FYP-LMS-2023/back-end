@@ -25,7 +25,6 @@ const notificationRouter = require("./routes/notification");
 const assignmentTwoRouter = require("./routes/assignmentTwo");
 const resourceRouter = require("./routes/resource");
 
-
 // const connectDB = require("./config/db");
 const connectDB = async () => {
   try {
